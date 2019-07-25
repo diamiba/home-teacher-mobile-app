@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:home_teacher/vues/Login.dart';
+import 'package:home_teacher/vues/Register.dart';
+import 'package:home_teacher/vues/PasswordRecovery.dart';
+import 'package:home_teacher/vues/PasswordChange.dart';
+import 'package:home_teacher/vues/Home.dart';
 
 void main() => runApp(MyApp());
 
@@ -13,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.orange,
       ),
-      home: LoginPage(),
+      home: HomePage(),
     );
   }
 }
