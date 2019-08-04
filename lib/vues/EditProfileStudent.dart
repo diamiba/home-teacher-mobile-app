@@ -1,10 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:home_teacher/vues/EditProfile.dart';
-import 'package:home_teacher/vues/EditProfileTeacher.dart';
-import 'package:home_teacher/vues/Explorer.dart';
-import 'package:home_teacher/vues/Home.dart';
+import 'package:home_teacher/vues/CustomWidgets.dart';
 import 'package:home_teacher/vues/Utile.dart';
 
 class EditProfileStudentPage extends StatefulWidget {
@@ -18,19 +15,25 @@ class _EditProfileStudentPageState extends State<EditProfileStudentPage> {
   Student student;
   int mark, maxMark=5;
   String level, district;
-  String selected;
+  List<String> studentDistrictList = List.from(districtList);
   TextEditingController school;
+  var _scaffoldState = GlobalKey<ScaffoldState>();
+  var _formKeyUpdate = GlobalKey<FormState>();
+  String _erreurText = "";
+  bool _isLoading = false;
 
   _EditProfileStudentPageState(this.student){
-    level = this.student.level;
-    district = this.student.district;
+    studentDistrictList.remove(districtList.first);
+    level = (this.student.level != null)?this.student.level:levelList.first;
+    district = (this.student.district != null)?this.student.district:studentDistrictList.first;
     school = TextEditingController(text: this.student.school);
   }
 
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays ([]); // cacher la status bar
-    return CustomBody(
+    return CustomModalProgressHUD(_isLoading,
+    CustomBody(
       Center(
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
@@ -41,12 +44,28 @@ class _EditProfileStudentPageState extends State<EditProfileStudentPage> {
                   alignment: Alignment.topLeft,
                   child: CustomText("Modifier mes informations d'élève", darkColor, 3, bold: true),
                 ),
-                CustomDropDown("Dans quel quartier habitez-vous ?", "Exemple : Pissy", district, districtList, (String selection) {if (selection != district) setState((){this.district = selection;});}),
-                CustomDropDown("Quelle est votre classe actuelle ?", "Exemple : 6 ème", level, levelList, (String selection) {if (selection != level) setState((){this.level = selection;});}),
-                CustomTextField("Où étudiez-vous ?", "Exemple : Lycée Phillipe Zinda Kaboré", TextInputType.text, this.school),      
-                Padding(
-                  padding: const EdgeInsets.only(top: 25.0,),
-                  child: CustomButton("ENREGISTER", mainColor, ()=>print("ENREGISTER")),
+                Form(
+                  key: _formKeyUpdate,
+                  child:Column(
+                    children: <Widget>[
+                      CustomDropDown("Dans quel quartier habitez-vous ?", "Exemple : Pissy", district, studentDistrictList, (String selection) {if (selection != district) setState((){this.district = selection;});}),
+                      CustomDropDown("Quelle est votre classe actuelle ?", "Exemple : 6 ème", level, levelList, (String selection) {if (selection != level) setState((){this.level = selection;});}),
+                      CustomTextField("Où étudiez-vous ?", "Exemple : Lycée Phillipe Zinda Kaboré", TextInputType.text, this.school,
+                      textInputAction: TextInputAction.done,
+                      validator: (String value) {
+                        if (value.isEmpty) return "Veuillez saisir votre école";
+                      },
+                      onFieldSubmited: (pass) async {
+                         _update();
+                      },
+                      ),      
+                    ],
+                  )
+                ),
+                _erreurText.isEmpty?Container():CustomText(_erreurText, redColor, 6, padding: 5, textAlign: TextAlign.center),
+                CustomButton("ENREGISTER", mainColor, 
+                  ()async=>_update(),
+                  margin: const EdgeInsets.only(top: 25.0,),
                 ),
               ],
               ),
@@ -58,29 +77,36 @@ class _EditProfileStudentPageState extends State<EditProfileStudentPage> {
       horizontalPadding: 0,
       bottomPadding: 0,
       haveBackground: false,
-    );
+      scaffoldState: _scaffoldState,
+    ));
   }
 
 
-  Widget drawerItem(String texte, Widget destinationPage, {bool isSelected = false, isLogout = false}){
-    return ListTile(
-      title: Container(
-        color: isSelected?mainHighlightColor:mainColor,
-        child: Center(child: CustomText(texte, whiteColor, 4))
-      ),
-      contentPadding: const EdgeInsets.all(0),
-      onTap: (){
-        if(!isLogout){
-          Navigator.of(context).pop();
-          Navigator.push(context,
-            MaterialPageRoute(builder: (context)=> destinationPage)
-          );
-        }
-        else{
-          while(Navigator.of(context).canPop())
-            Navigator.of(context).pop();
-        }
-      }
-    );
+  _update() async {
+    print("update student infos");
+    setState(()=>_erreurText = "");
+    if (!_formKeyUpdate.currentState.validate()) return;
+
+    if(district == student.district && level == student.level && school.text == student.school)
+      setState((){
+        _erreurText = "Vous n'avez fait aucune modification";
+      } 
+      );
+    else{
+      setState((){
+        _isLoading = true;
+      } 
+      );
+      print("school: ${school.text}");
+      await Future.delayed(
+        Duration(seconds: 2)
+      );
+      setState((){
+        _isLoading = false;
+        showNotification("Changements enregistrés", _scaffoldState.currentState);
+        //_erreurText = "email inexistant";
+      } 
+      );
+    }
   }
 }

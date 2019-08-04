@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:home_teacher/vues/Utile.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:home_teacher/vues/CustomWidgets.dart';
 
 class FavorisPage extends StatefulWidget {
   @override
@@ -9,11 +9,12 @@ class FavorisPage extends StatefulWidget {
 }
 
 class _FavorisPageState extends State<FavorisPage> {
+  List<Teacher> favoriteTeachers = List.from(teachers);
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays ([]); // cacher la status bar
     return CustomBody(
-      favorisCard(teachers),
+      favorisCard(favoriteTeachers),
       pageName: "FAVORIS",
       isConnected: true,
       horizontalPadding: 0,
@@ -25,7 +26,7 @@ class _FavorisPageState extends State<FavorisPage> {
 
 
 
-  Widget favorisCard(List<Teacher> tearchersFound){
+  Widget favorisCard(List<Teacher> tearchersFound){afficher(tearchersFound);
     List <Widget> liste = List();
     liste.add(
       Center(child: CustomText("Mes favoris", darkColor, 2, bold: true, padding: 0,),)
@@ -33,8 +34,13 @@ class _FavorisPageState extends State<FavorisPage> {
 
     liste.add(SizedBox(height: 40,));
 
-    for(Teacher teacher in tearchersFound)
-      liste.add(TeacherCard(teacher, isFavoriteCard: true,));
+    if(tearchersFound.isEmpty)
+      liste.add(
+        Center(child: CustomText("Vous n'avez ajouté aucun favoris pour le moment", greyColor, 4, textAlign: TextAlign.center, padding: 0,),)
+      );
+    else
+      for(Teacher teacher in tearchersFound)
+        liste.add(TeacherCard(teacher, isFavoriteCard: true, retirerFavoris: this._retirerFavoris,));
     return Container(
       width: MediaQuery.of(context).size.width,
       color: lightGreyColor,
@@ -43,5 +49,34 @@ class _FavorisPageState extends State<FavorisPage> {
         children: liste
       )
     );
+  }
+
+
+  _retirerFavoris(Teacher teacher) async {
+    bool reponse = await demandeConfirmation(context, "Voulez vous vraiment retirer ${teacher.firstname} de vos favoris?");
+    
+    if(!reponse) return;
+
+    await Future.delayed(
+      Duration(seconds: 1)
+    );
+    print("remove ${teacher.firstname} from favoris");
+    int index = favoriteTeachers.indexWhere((t)=>t.id==teacher.id);
+    //afficher(favoriteTeachers);
+    if(index>=0)
+      setState(
+        (){
+        var t = favoriteTeachers.removeAt(index);
+        //favoriteTeachers = List.from(favoriteTeachers);
+        }
+      ); 
+    //afficher(favoriteTeachers);
+  }
+
+  afficher(List<Teacher> lt){
+    String s = "[ ";
+    for(Teacher t in lt)
+      s+="(${t.id}-${t.firstname}${t.lastname})";
+    print(s);
   }
 }

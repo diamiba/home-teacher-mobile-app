@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:home_teacher/vues/Utile.dart';
 import 'package:home_teacher/vues/Explorer.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:home_teacher/vues/CustomWidgets.dart';
 
 class HomePage extends StatefulWidget {
   @override

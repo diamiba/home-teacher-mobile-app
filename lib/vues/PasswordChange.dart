@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:home_teacher/vues/Utile.dart';
+import 'package:home_teacher/vues/CustomWidgets.dart';
 
 
 class PasswordChangePage extends StatefulWidget {
@@ -33,6 +34,8 @@ class _PasswordChangePageState extends State<PasswordChangePage> {
               child: CustomText("Retour à la page de connexion", darkColor, 5, padding: 8, bold: true, underline: true,),
               onTap: (){
                 print("Retour à la page de connexion");
+                while(Navigator.of(context).canPop())
+                  Navigator.of(context).pop();
               },
             ),
           ],

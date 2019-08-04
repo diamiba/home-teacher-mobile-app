@@ -1,9 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:home_teacher/vues/Utile.dart';
 import 'package:home_teacher/vues/ShowPhoto.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:home_teacher/vues/CustomWidgets.dart';
 
 class TeacherDetailsPage extends StatefulWidget {
   Teacher _teacher;
@@ -14,6 +16,13 @@ class TeacherDetailsPage extends StatefulWidget {
 
 class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
   int mark, maxMark=5;
+  bool isFavorite = false;
+  Widget image;
+  var _scaffoldState = GlobalKey<ScaffoldState>();
+
+  _TeacherDetailsPageState(){
+    isFavorite = isFavoriteTeacher();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,13 +36,33 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
                 tag: this.widget._teacher.id,
                 transitionOnUserGestures: true,
                 child: GestureDetector(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(20)),
-                    child: Image.asset("images/profil_picture.png", width: 150,),
+                  child: CachedNetworkImage(
+                    imageUrl: this.widget._teacher.profilePicture,
+                    imageBuilder: (context, imageProvider){
+                      this.image = Image(image: imageProvider, fit: BoxFit.contain);
+                      return ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                        child: Image(image: imageProvider),
+                      );
+                    },
+                    placeholder: (context, url) => ClipRRect(
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        child: CircularProgressIndicator(
+                          backgroundColor: mainLightColor,
+                        ),
+                      ),
+                    errorWidget: (context, url, error){
+                      this.image = Image.asset("images/profil_picture.png", fit: BoxFit.contain);
+                      print(error);
+                      return ClipRRect(
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        child: Image.asset("images/profil_picture.png", width: 150,),
+                      );
+                    } 
                   ),
                   onTap: (){
                     Navigator.push(context,
-                      MaterialPageRoute(builder: (context)=> ShowPhoto(image: Image.asset("images/profil_picture.png", fit: BoxFit.contain,), id: this.widget._teacher.id,))
+                      MaterialPageRoute(builder: (context)=> ShowPhoto(image: this.image, id: this.widget._teacher.id,))
                     );
                   }
                 ),
@@ -51,8 +80,9 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
               listToWidget("CLASSES ENSEIGNEES", this.widget._teacher.levelTeached),
               listToWidget("QUARTIERS ENSEIGNEES", this.widget._teacher.districtTeached),
               Container(color: greyColor, height: 0.3,margin: EdgeInsets.symmetric(vertical: 10),),
-              CustomButton("NOTER", mainColor, ()=>print("Voir professeur"),margin: EdgeInsets.symmetric(vertical: 10),),
-              CustomButton("AJOUTER A MES FAVORIS", mainColor, ()=>print("Voir professeur"),margin: EdgeInsets.symmetric(vertical: 10),)
+              CustomButton("NOTER", mainColor, ()=>_noter(),margin: EdgeInsets.symmetric(vertical: 10),),
+              isFavorite?CustomButton("RETIRER DES FAVORIS", redColor, ()=>_retirerFavoris(this.widget._teacher),margin: EdgeInsets.symmetric(vertical: 10),)
+              :CustomButton("AJOUTER A MES FAVORIS", mainColor, ()=>_ajouterFavoris(this.widget._teacher),margin: EdgeInsets.symmetric(vertical: 10),)
             ],
             ),
             margin: EdgeInsets.symmetric(vertical: 20, horizontal: 25),
@@ -63,6 +93,7 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
       horizontalPadding: 0,
       bottomPadding: 0,
       haveBackground: false,
+      scaffoldState: _scaffoldState,
     );
   }
 
@@ -129,6 +160,35 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
       ),
     );
   }
+
+
+  bool isFavoriteTeacher(){
+    return true;
+  }
+  _retirerFavoris(Teacher teacher) async {
+    bool reponse = await demandeConfirmation(context, "Voulez vous vraiment retirer ${teacher.firstname} de vos favoris?");
+    if(!reponse) return;
+    
+    await Future.delayed(
+      Duration(seconds: 1)
+    );
+    print("remove ${teacher.firstname} from favoris");
+    setState(()=>isFavorite = false); 
+  }
+  _ajouterFavoris(Teacher teacher) async {
+    await Future.delayed(
+      Duration(seconds: 2)
+    );
+    print("add ${teacher.firstname} to favoris");
+    setState(()=>isFavorite = true); 
+  }
+
+  _noter(){
+    showNotification("Not implemented yet :p", _scaffoldState.currentState);
+  }
+
+
+
 
   call() async {
     String url = 'tel:${this.widget._teacher.phoneNumber}';
