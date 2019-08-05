@@ -9,7 +9,8 @@ import 'package:home_teacher/vues/CustomWidgets.dart';
 
 class TeacherDetailsPage extends StatefulWidget {
   Teacher _teacher;
-  TeacherDetailsPage(this._teacher);
+  String _heroTag;
+  TeacherDetailsPage(this._teacher, this._heroTag);
   @override
   _TeacherDetailsPageState createState() => _TeacherDetailsPageState();
 }
@@ -33,32 +34,35 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
           Column(
             children: <Widget>[
               Hero(
-                tag: this.widget._teacher.id,
+                tag: this.widget._heroTag,
                 transitionOnUserGestures: true,
                 child: GestureDetector(
-                  child: CachedNetworkImage(
-                    imageUrl: this.widget._teacher.profilePicture,
-                    imageBuilder: (context, imageProvider){
-                      this.image = Image(image: imageProvider, fit: BoxFit.contain);
-                      return ClipRRect(
-                      borderRadius: BorderRadius.all(Radius.circular(20)),
-                        child: Image(image: imageProvider),
-                      );
-                    },
-                    placeholder: (context, url) => ClipRRect(
+                  child: Container(
+                    constraints: BoxConstraints(minWidth: 150, maxWidth: 250),
+                    child: CachedNetworkImage(
+                      imageUrl: this.widget._teacher.profilePicture,
+                      imageBuilder: (context, imageProvider){
+                        this.image = Image(image: imageProvider, fit: BoxFit.contain);
+                        return ClipRRect(
                         borderRadius: BorderRadius.all(Radius.circular(20)),
-                        child: CircularProgressIndicator(
-                          backgroundColor: mainLightColor,
+                          child: Image(image: imageProvider),
+                        );
+                      },
+                      placeholder: (context, url) => ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          child: CircularProgressIndicator(
+                            backgroundColor: mainLightColor,
+                          ),
                         ),
-                      ),
-                    errorWidget: (context, url, error){
-                      this.image = Image.asset("images/profil_picture.png", fit: BoxFit.contain);
-                      print(error);
-                      return ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                        child: Image.asset("images/profil_picture.png", width: 150,),
-                      );
-                    } 
+                      errorWidget: (context, url, error){
+                        this.image = Image.asset("images/profil_picture.png", fit: BoxFit.contain);
+                        print(error);
+                        return ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          child: Image.asset("images/profil_picture.png"),
+                        );
+                      } 
+                    ),
                   ),
                   onTap: (){
                     Navigator.push(context,
@@ -70,7 +74,7 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
               CustomText("${this.widget._teacher.firstname} ${this.widget._teacher.lastname.toUpperCase()}", darkColor, 3, bold: true,padding: 5,),
               CustomText(this.widget._teacher.job, mainColor, 4, italic: true,padding: 2,),
               setStars(this.widget._teacher.mark, this.widget._teacher.numberOfVotes),
-              CustomText(this.widget._teacher.description, greyColor, 5, italic: true,textAlign: TextAlign.center,padding: 25, lineSpacing: 1.2,),
+              CustomText(this.widget._teacher.description, greyColor, 5, italic: true,textAlign: TextAlign.center,padding: 25, lineSpacing: 1.2,overflow: false,),
               Container(color: greyColor, height: 0.3,margin: EdgeInsets.symmetric(vertical: 10),),
               infos(Icons.phone, "NUMERO DE TELEPHONE", this.widget._teacher.phoneNumber, this.call),
               infos(Icons.mail, "ADRESSE MAIL", this.widget._teacher.mail, sendMail),
@@ -98,6 +102,7 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
   }
 
   Widget setStars(int nbStars, int numberOfVotes){
+    nbStars = (nbStars>=0 && nbStars<=maxMark)?nbStars:0;
     List <Widget> liste = List();
     for(int i=0; i<maxMark; i++)
       liste.add(Icon(i<nbStars?Icons.star:Icons.star_border, color: mainColor, size: 20.0,));
@@ -122,7 +127,7 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
             ],
           ),
           GestureDetector(
-            child: CustomText(info, darkColor, 4, bold: true, padding: 0),
+            child: CustomText(info, f!=null?mainColor:darkColor, 4, bold: true, padding: 0),
             onTap: f,
           ),
         ],

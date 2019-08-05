@@ -52,11 +52,11 @@ class BigLogo extends StatelessWidget {
 class CustomText extends StatelessWidget {
   String text;
   Color color = whiteColor;
-  bool bold, underline, italic;
+  bool bold, underline, italic, overflow;
   int level = 1;
   double padding, lineSpacing;
   TextAlign textAlign;
-  CustomText(this.text, this.color, this.level,{this.padding = 15, this.lineSpacing = 1, this.bold = false, this.underline = false, this.italic = false, this.textAlign = TextAlign.start});
+  CustomText(this.text, this.color, this.level,{this.padding = 15, this.lineSpacing = 1, this.bold = false, this.underline = false, this.overflow = false, this.italic = false, this.textAlign = TextAlign.start});
   @override
   Widget build(BuildContext context) {
     double size;
@@ -86,6 +86,7 @@ class CustomText extends StatelessWidget {
           height: lineSpacing,
         ),
         textAlign: textAlign,
+        overflow: overflow?TextOverflow.ellipsis:TextOverflow.visible,
         ),
     );
   }
@@ -114,7 +115,7 @@ class CustomButton extends StatelessWidget {
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[CustomText(text, whiteColor, 4, padding: 0,),],
+          children: <Widget>[CustomText(text, whiteColor, 4, padding: 0, overflow: true,),],
         ),
         color: color,
         onPressed: this.onPressed,
@@ -423,62 +424,64 @@ class _CustomBodyState extends State<CustomBody> {
 
 
   Widget body(){
-    return ListView(
-      children: <Widget>[
-        SizedBox(height: this.widget.haveBackground?30:0,),
-        StickyHeaderBuilder(
-          overlapHeaders: true,
-          builder: (BuildContext context, double stuckAmount) {
-            stuckAmount = this.widget.haveBackground?(1.0 - stuckAmount.clamp(0.0, 1.0)):1;
-            double headerOpacity = (stuckAmount<1)?0:1;
-            return new Container(
-              height: 55.0,
-              //color: mainColor.withOpacity((stuckAmount-0.32).clamp(0.0, 1.0)/0.68),
-              padding: new EdgeInsets.symmetric(horizontal: 10.0),
-              decoration: BoxDecoration(
-                color: mainColor.withOpacity(headerOpacity),
-                boxShadow: [BoxShadow(blurRadius: 3, color: mainHighlightColor.withOpacity(headerOpacity))]
-              ),
-              child: Row(
-                children: <Widget>[
-                  this.widget.isConnected?Container(
-                    width: 80,
-                    height: 35,
-                    margin: EdgeInsets.only(left: 25.0),
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage("images/logo_white.png"),
+    return SafeArea(
+      child: ListView(
+        children: <Widget>[
+          SizedBox(height: this.widget.haveBackground?30:0,),
+          StickyHeaderBuilder(
+            overlapHeaders: true,
+            builder: (BuildContext context, double stuckAmount) {
+              stuckAmount = this.widget.haveBackground?(1.0 - stuckAmount.clamp(0.0, 1.0)):1;
+              double headerOpacity = (stuckAmount<1)?0:1;
+              return new Container(
+                height: 55.0,
+                //color: mainColor.withOpacity((stuckAmount-0.32).clamp(0.0, 1.0)/0.68),
+                padding: new EdgeInsets.symmetric(horizontal: 10.0),
+                decoration: BoxDecoration(
+                  color: mainColor.withOpacity(headerOpacity),
+                  boxShadow: [BoxShadow(blurRadius: 3, color: mainHighlightColor.withOpacity(headerOpacity))]
+                ),
+                child: Row(
+                  children: <Widget>[
+                    this.widget.isConnected?Container(
+                      width: 80,
+                      height: 35,
+                      margin: EdgeInsets.only(left: 25.0),
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage("images/logo_white.png"),
+                        ),
+                      ),
+                    ):Container(),
+                    Spacer(flex: 1,),
+                    Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.all(0.0),
+                      margin: EdgeInsets.only(right: 25.0),
+                      height: 32,
+                      width: 35,
+                      decoration: BoxDecoration(
+                        color: mainColor,
+                        borderRadius: BorderRadius.all(Radius.circular(2)),
+                      ),
+                      child: FlatButton(
+                        highlightColor: mainHighlightColor,
+                        padding: const EdgeInsets.all(0.0),
+                        child: Icon(Icons.menu, color: whiteColor, size: 30,),
+                        onPressed: ()=>Scaffold.of(context).openEndDrawer(),
                       ),
                     ),
-                  ):Container(),
-                  Spacer(flex: 1,),
-                  Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.all(0.0),
-                    margin: EdgeInsets.only(right: 25.0),
-                    height: 32,
-                    width: 35,
-                    decoration: BoxDecoration(
-                      color: mainColor,
-                      borderRadius: BorderRadius.all(Radius.circular(2)),
-                    ),
-                    child: FlatButton(
-                      highlightColor: mainHighlightColor,
-                      padding: const EdgeInsets.all(0.0),
-                      child: Icon(Icons.menu, color: whiteColor, size: 30,),
-                      onPressed: ()=>Scaffold.of(context).openEndDrawer(),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-          content: Padding(
-            padding: EdgeInsets.only(top: 80.0, bottom: this.widget.bottomPadding, right: this.widget.horizontalPadding, left: this.widget.horizontalPadding),
-            child: this.widget.content
+                  ],
+                ),
+              );
+            },
+            content: Padding(
+              padding: EdgeInsets.only(top: 80.0, bottom: this.widget.bottomPadding, right: this.widget.horizontalPadding, left: this.widget.horizontalPadding),
+              child: this.widget.content
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -513,15 +516,17 @@ class TeacherCard extends StatelessWidget {
   Teacher _teacher;
   bool isFavoriteCard;
   Function retirerFavoris;
-  TeacherCard(this._teacher, {this.isFavoriteCard = false, this.retirerFavoris});
+  String heroTag;
+  TeacherCard(this._teacher, this.heroTag, {this.isFavoriteCard = false, this.retirerFavoris});
   int maxMark=5;
 
   @override
   Widget build(BuildContext context) {
-    this._teacher.mark = (this._teacher.mark>=0 && this._teacher.mark<=maxMark)?this._teacher.mark:0;
+    double phoneWidth = MediaQuery.of(context).size.width;
+    String description = this._teacher.description.length<140?this._teacher.description:this._teacher.description.substring(0,139)+"...";
     return Container(
       padding: EdgeInsets.symmetric(vertical: 10,),
-      width: 350,
+      width: phoneWidth<400?320:350,
       child: CustomCard(
         Column(
           children: <Widget>[
@@ -533,7 +538,7 @@ class TeacherCard extends StatelessWidget {
               ),
             ):Container(),
             Hero(
-              tag: this._teacher.id,
+              tag: this.heroTag,
               transitionOnUserGestures: true,
               child: Container(
                 padding: EdgeInsets.all(4),
@@ -563,15 +568,15 @@ class TeacherCard extends StatelessWidget {
                 ),
               ),
             ),
-            CustomText("${this._teacher.firstname} ${this._teacher.lastname.toUpperCase()}", darkColor, 3, bold: true,padding: 5, textAlign: TextAlign.center),
+            CustomText("${this._teacher.firstname} ${this._teacher.lastname.toUpperCase()}", darkColor, 3, bold: true,padding: 5, textAlign: TextAlign.center,),
             CustomText(this._teacher.job, mainColor, 4, italic: true,padding: 2, textAlign: TextAlign.center),
             setStars(this._teacher.mark),
-            CustomText(this._teacher.description, greyColor, 5, italic: true,textAlign: TextAlign.center,padding: 25, lineSpacing: 1.2,),
+            CustomText(description, greyColor, 5, italic: true,textAlign: TextAlign.center,padding: 25, lineSpacing: 1.2),
             CustomButton("VOIR !", mainColor, 
               (){
                 print("Voir professeur"); 
                 Navigator.push(context,
-                  MaterialPageRoute(builder: (context)=> TeacherDetailsPage(this._teacher))
+                  MaterialPageRoute(builder: (context)=> TeacherDetailsPage(this._teacher, this.heroTag))
                 );
               },
               margin: EdgeInsets.only(left: 25.0, right: 25.0, top: 10.0),
@@ -585,10 +590,13 @@ class TeacherCard extends StatelessWidget {
             ):Container()
           ],
         ),
+        padding: EdgeInsets.symmetric(vertical: 30.0, horizontal: phoneWidth<400?10:25.0),
       ),
     );
   }
   Widget setStars(int nb){
+    nb = (nb>=0 && nb<=maxMark)?nb:0;
+
     List <Widget> liste = List();
     for(int i=0; i<maxMark; i++)
       liste.add(Icon(i<nb?Icons.star:Icons.star_border, color: mainColor, size: 20.0,));

@@ -44,7 +44,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
           Container(
             width: MediaQuery.of(context).size.width,
             color: lightGreyColor,
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 40),
             child: Column(
               children: <Widget>[
                 Row(
@@ -82,9 +82,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 ),
                 SizedBox(height: 40,),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                   explorerCard(teachers, 0), 
-                  //SizedBox(width: 5,),
                   explorerCard(teachers, 1),                
                 ],)
                                
@@ -107,31 +107,32 @@ class _ExplorerPageState extends State<ExplorerPage> {
     List <Widget> liste = List();
 
     for(Teacher teacher in tearchersFound)
-      liste.add(TeacherCard(teacher));
+      liste.add(TeacherCard(teacher, "Explorer$n${teacher.id}"));
     return animateContent(
-      Column(
-        mainAxisSize: MainAxisSize.min,
-        children: liste
-      ),n
+      Wrap(
+        spacing: 15,
+        runSpacing: 10,
+        children: liste,
+      ),
+      n
     );
   }
 
 
   Widget animateContent(Widget child, int index){
+    double phoneWidth = MediaQuery.of(context).size.width;
+
     return AnimatedContainer(
-      margin: EdgeInsets.all(5),
+      margin:  (index==1)?EdgeInsets.only(left:5):EdgeInsets.only(right:5),
       duration: Duration(milliseconds: 1000),
       curve: Curves.easeInOutCirc,
       //height: (MediaQuery.of(context).size.height)-((index==0)? (isMostRecent ? 200 : 290):(!isMostRecent ? 200 : 290)),
-      width: (index==1)? (isMostRecent ? MediaQuery.of(context).size.width-60 : 0):(!isMostRecent ? MediaQuery.of(context).size.width-60 : 0),
+      width: (index==1)? (isMostRecent ? (phoneWidth-30) : 0):(!isMostRecent ? (phoneWidth-30) : 0),
       child: SingleChildScrollView(
         physics: NeverScrollableScrollPhysics(),
         reverse: (index==1)?false:true,
         scrollDirection: Axis.horizontal,
-        child: Padding(
-          padding: EdgeInsets.all(0),
-          child: child
-        )
+        child: Container(child: child, width: phoneWidth-30, alignment: Alignment.topCenter,)
       ),
     );
   }

@@ -28,19 +28,26 @@ class _FavorisPageState extends State<FavorisPage> {
 
   Widget favorisCard(List<Teacher> tearchersFound){afficher(tearchersFound);
     List <Widget> liste = List();
+    List <Widget> myTeachers = List();
     liste.add(
       Center(child: CustomText("Mes favoris", darkColor, 2, bold: true, padding: 0,),)
     );
 
     liste.add(SizedBox(height: 40,));
 
-    if(tearchersFound.isEmpty)
+    if(tearchersFound!=null && tearchersFound.isNotEmpty){
+      for(Teacher teacher in tearchersFound)
+        myTeachers.add(TeacherCard(teacher, "Favoris${teacher.id}", isFavoriteCard: true, retirerFavoris: this._retirerFavoris,));
+      liste.add(Wrap(
+        spacing: 15,
+        runSpacing: 10,
+        children: myTeachers,
+      ));
+    }
+    else
       liste.add(
         Center(child: CustomText("Vous n'avez ajouté aucun favoris pour le moment", greyColor, 4, textAlign: TextAlign.center, padding: 0,),)
       );
-    else
-      for(Teacher teacher in tearchersFound)
-        liste.add(TeacherCard(teacher, isFavoriteCard: true, retirerFavoris: this._retirerFavoris,));
     return Container(
       width: MediaQuery.of(context).size.width,
       color: lightGreyColor,

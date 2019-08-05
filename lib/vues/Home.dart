@@ -139,15 +139,22 @@ class _HomePageState extends State<HomePage> {
 
   Widget resultCard(List<Teacher> tearchersFound){
     List <Widget> liste = List();
+    List <Widget> myTeachers = List();
     liste.add(CustomText("Résultats de la recherche.", darkColor, 2, bold: true, padding: 5,));
-    if(tearchersFound != null && tearchersFound.length>0)
-      liste.add(CustomText("${tearchersFound.length} enseignant${tearchersFound.length>1?"s ont été trouvés":" a été trouvé"} !", greyColor, 4, padding: 5,));
+    if(tearchersFound != null && tearchersFound.isNotEmpty){
+      liste.add(CustomText("${tearchersFound.length} enseignant${tearchersFound.length>1?"s ont été trouvés":" a été trouvé"} !", greyColor, 4, padding: 5,overflow: false));
+      liste.add(SizedBox(height: 40,));
+      for(Teacher teacher in tearchersFound)
+        myTeachers.add(TeacherCard(teacher, "Home${teacher.id}"));
+      
+      liste.add(Wrap(
+        spacing: 15,
+        runSpacing: 10,
+        children: myTeachers,
+      ));
+    }
     else
-      liste.add(CustomText("Aucun enseignant n'a été trouvé !", greyColor, 4, padding: 5,));
-    liste.add(SizedBox(height: 40,));
-
-    for(Teacher teacher in tearchersFound)
-      liste.add(TeacherCard(teacher));
+      liste.add(CustomText("Aucun enseignant n'a été trouvé !", greyColor, 4, padding: 5,overflow: false));
     return Container(
       width: MediaQuery.of(context).size.width,
       color: lightGreyColor,

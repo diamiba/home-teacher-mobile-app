@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
 import 'package:home_teacher/vues/Utile.dart';
 import 'package:home_teacher/vues/ShowPhoto.dart';
+//import 'package:image_picker/image_picker.dart';
 
 class EditProfilePage extends StatefulWidget {
   User user;
@@ -18,6 +21,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   int mark, maxMark=5;
   String selectedCountry, indicatif;
   Widget image;
+  File _image;
   bool _isLoading = false;
   var _scaffoldState = GlobalKey<ScaffoldState>();
   var _formKeyUpdateInfos = GlobalKey<FormState>();
@@ -88,11 +92,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 ),
                               ),
                             errorWidget: (context, url, error){
-                              this.image = Image.asset("images/profil_picture.png", fit: BoxFit.contain);
+                              this.image = (this._image==null)? Image.asset("images/profil_picture.png", fit: BoxFit.contain):
+                              Image.file(this._image, fit: BoxFit.contain);
                               print(error);
                               return ClipRRect(
                                 borderRadius: BorderRadius.all(Radius.circular(20)),
-                                child: Image.asset("images/profil_picture.png", width: 150,),
+                                child: (this._image==null)?Image.asset("images/profil_picture.png", width: 150,):Image.file(this._image, width: 150,),
                               );
                             } 
                           ),
@@ -107,7 +112,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           }
                         ),
                       ),
-                      CustomButton("CHANGER", mainColor, ()=>_changePhoto(),
+                      CustomButton("CHANGER", mainColor, ()async=>_changePhoto(),
                         margin: const EdgeInsets.only(top: 25.0,),
                       ),
                     ],
@@ -188,7 +193,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 SizedBox(height: 50,),
                 Align(
                   alignment: Alignment.topLeft,
-                  child: CustomText("Modification de mon mot de passe", darkColor, 3, bold: true),
+                  child: CustomText("Modification de mon mot de passe", darkColor, 3, bold: true,),
                 ),
                 Form(
                   key: _formKeyUpdatePassword,
@@ -198,7 +203,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       obscure: true,
                       validator: (String value) {
                         if (value.isEmpty) return "Veuillez saisir votre mot de passe actuel";
-                        else if(value.length<8) return 'Votre mot de passe doit contenir 8 caractères minimum';
+                        else if(value.length<8) return 'Veuillez saisir 8 caractères minimum';
                       },
                       onFieldSubmited: (String value) {
                         setState(()=>FocusScope.of(context).requestFocus(passwordNewFocusNode));
@@ -210,7 +215,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       textInputAction: TextInputAction.done,
                       validator: (String value) {
                         if (value.isEmpty) return "Veuillez saisir votre nouveau mot de passe";
-                        else if(value.length<8) return 'Votre mot de passe doit contenir 8 caractères minimum';
+                        else if(value.length<8) return 'Veuillez saisir 8 caractères minimum';
                         else if(passwordNewController.text == passwordController.text) return "Votre nouveau mot de passe doit être différent\nde l'actuel";
                       },
                       onFieldSubmited: (String value) async {
@@ -238,9 +243,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
     ));
   }
 
-  _changePhoto(){
+  _changePhoto() async {
+    /*var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      _image = image;
+    });*/
     showNotification("Not implemented yet :p", _scaffoldState.currentState);
   }
+
 
   _updateInfos() async {
     print("update Infos");

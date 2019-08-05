@@ -5,6 +5,7 @@ import 'package:home_teacher/vues/PasswordRecovery.dart';
 import 'package:home_teacher/vues/Register.dart';
 import 'package:home_teacher/vues/Utile.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -65,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
                       textInputAction: TextInputAction.done,
                       validator: (String value) {
                         if (value.isEmpty) return "Veuillez saisir votre mot de passe";
-                        else if(value.length<8) return 'Votre mot de passe doit contenir 8 caractères minimum';
+                        else if(value.length<8) return 'Veuillez saisir 8 caractères minimum';
                       },
                       onFieldSubmited: (pass) async {
                           _login();
@@ -116,9 +117,9 @@ class _LoginPageState extends State<LoginPage> {
     if(!haveInternet){
       setState((){
         _isLoading = false;
-        //_erreurText = "Vous n'êtes pas connecté à internet";
+        //_erreurText = "Veuillez vérifier votre connection internet";
       });
-      showNotification("Vous n'êtes pas connecté à internet", this._scaffoldState.currentState);
+      showNotification("Veuillez vérifier votre connection internet", this._scaffoldState.currentState);
       return;
     }
     await Future.delayed(
@@ -147,20 +148,52 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   _loginFacebook() async {
-    print("connecter");
-    setState(()=>_erreurText = "");
-    if (!_formKeyLogin.currentState.validate()) return;
-    setState(()=> _isLoading = true);
-    print("mail: ${emailController.text} | password: ${passwordController.text}");
-    /*bool haveInternet = await checkConnection();
+    bool haveInternet = await checkConnection();
     if(!haveInternet){
       setState((){
         _isLoading = false;
-        //_erreurText = "Vous n'êtes pas connecté à internet";
       });
-      showNotification("Vous n'êtes pas connecté à internet", this._scaffoldState.currentState);
+      showNotification("Veuillez vérifier votre connection internet", this._scaffoldState.currentState);
       return;
-    }*/
+    }
+    final facebookLogin = FacebookLogin();
+    final result = await facebookLogin.logInWithReadPermissions(['email']);
+
+    switch (result.status) {
+      case FacebookLoginStatus.loggedIn:
+        final FacebookAccessToken accessToken = result.accessToken;
+        print('''
+         Logged in!
+         Token: ${accessToken.token}
+         User id: ${accessToken.userId}
+         Expires: ${accessToken.expires}
+         Permissions: ${accessToken.permissions}
+         Declined permissions: ${accessToken.declinedPermissions}
+         ''');
+        showNotification('''
+         Logged in!
+         Token: ${accessToken.token}
+         User id: ${accessToken.userId}
+         Expires: ${accessToken.expires}
+         Permissions: ${accessToken.permissions}
+         Declined permissions: ${accessToken.declinedPermissions}
+         ''', 
+         _scaffoldState.currentState);
+        
+        //_showLoggedInUI();
+        break;
+      case FacebookLoginStatus.cancelledByUser:
+        showNotification("Identification annulée", _scaffoldState.currentState);
+        break;
+      case FacebookLoginStatus.error:
+        print(result.errorMessage);
+        showNotification("Echec de l'identification par Facebook", _scaffoldState.currentState);
+        break;
+    }
+    /*setState(()=>_erreurText = "");
+    if (!_formKeyLogin.currentState.validate()) return;
+    setState(()=> _isLoading = true);
+    print("mail: ${emailController.text} | password: ${passwordController.text}");
     await Future.delayed(
       Duration(seconds: 2)
     );
@@ -183,14 +216,14 @@ class _LoginPageState extends State<LoginPage> {
     else{
       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=> LoginPage()));
       Navigator.push(context,MaterialPageRoute(builder: (context)=> HomePage()));
-    }
+    }*/
   }
 
-  afficher(List<Teacher> lt){
+  /*afficher(List<Teacher> lt){
     String s = "[ ";
     for(Teacher t in lt)
       s+="(${t.id}-${t.firstname}${t.lastname})";
     print(s);
-  }
+  }*/
 }
 

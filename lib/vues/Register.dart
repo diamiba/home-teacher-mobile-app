@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:home_teacher/vues/Utile.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:http/http.dart' as http;
 
 
 class RegisterPage extends StatefulWidget {
@@ -15,6 +19,7 @@ class _RegisterPageState extends State<RegisterPage> {
   String selectedCountry = countryList[0];
   String indicatif;
   bool _isLoading = false;
+  var _scaffoldState = GlobalKey<ScaffoldState>();
   var _formKeyRegister = GlobalKey<FormState>();
   TextEditingController lastnameController = TextEditingController();
   TextEditingController firstnameController = TextEditingController();
@@ -51,9 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 CustomButton("S'inscrire avec Facebook", blueColor,
                   (){
                     print("Inscrire avec Facebook");
-                    setState(() {
-                      _isDone = true; 
-                    });
+                    _registerFacebook();
                   },
                   margin: EdgeInsets.only(top: 30, bottom: 30),
                 ),
@@ -139,7 +142,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       obscure: true,
                       validator: (String value) {
                         if (value.isEmpty) return "Veuillez saisir votre mot de passe";
-                        else if(value.length<8) return 'Votre mot de passe doit contenir 8 caractères minimum';
+                        else if(value.length<8) return 'Veuillez saisir 8 caractères minimum';
                       },
                       onFieldSubmited: (String value) {
                         setState(()=>FocusScope.of(context).requestFocus(passwordConfirmationFocusNode));
@@ -200,6 +203,7 @@ class _RegisterPageState extends State<RegisterPage> {
         )
       ),
       pageName: "INSCRIPTION",
+      scaffoldState: _scaffoldState,
     ));
   }
 
@@ -212,6 +216,15 @@ class _RegisterPageState extends State<RegisterPage> {
       _isLoading = true;
     } 
     );
+    bool haveInternet = await checkConnection();
+    if(!haveInternet){
+      setState((){
+        _isLoading = false;
+        //_erreurText = "Veuillez vérifier votre connection internet";
+      });
+      showNotification("Veuillez vérifier votre connection internet", this._scaffoldState.currentState);
+      return;
+    }
     print("lastname: ${lastnameController.text} | firstname: ${firstnameController.text} | "
       "mail: ${emailController.text} | phoneNumber: ${phoneNumberController.text} | adress: ${adressController.text} "
       "| country: $selectedCountry | password: ${passwordController.text}");
@@ -261,6 +274,44 @@ class _RegisterPageState extends State<RegisterPage> {
       } 
       );
     }
+  }
+
+
+  _registerFacebook() async {
+    bool haveInternet = await checkConnection();
+    if(!haveInternet){
+      setState((){
+        _isLoading = false;
+        //_erreurText = "Veuillez vérifier votre connection internet";
+      });
+      showNotification("Veuillez vérifier votre connection internet", this._scaffoldState.currentState);
+      return;
+    }
+    final facebookSignIn = FacebookLogin();
+    final result = await facebookSignIn.logInWithReadPermissions(['email']);
+    switch (result.status) {
+      case FacebookLoginStatus.loggedIn:
+        final String token = result.accessToken.token;
+        final graphResponse = await http.get(
+                    'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
+        final profile = json.decode(graphResponse.body);
+        print(profile.toString());
+        showNotification(profile.toString(), _scaffoldState.currentState);
+        break;
+      case FacebookLoginStatus.cancelledByUser:
+        print("Inscription annulée");
+        showNotification("Inscription annulée", _scaffoldState.currentState);
+        return;
+        break;
+      case FacebookLoginStatus.error:
+        print(result.errorMessage);
+        showNotification("Echec de l'inscription par Facebook", _scaffoldState.currentState);
+        return;
+        break;
+    }
+    setState(() {
+      _isDone = true; 
+    });
   }
 }
 
