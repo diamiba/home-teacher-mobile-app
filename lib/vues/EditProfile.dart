@@ -5,9 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
-import 'package:home_teacher/vues/Utile.dart';
+import 'package:home_teacher/Utile.dart';
 import 'package:home_teacher/vues/ShowPhoto.dart';
-//import 'package:image_picker/image_picker.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditProfilePage extends StatefulWidget {
   User user;
@@ -74,10 +74,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           child: CachedNetworkImage(
                             imageUrl: this.user.profilePicture,
                             imageBuilder: (context, imageProvider){
-                              this.image = Image(image: imageProvider, fit: BoxFit.contain);
+                              this.image = (this._image==null)?Image(image: imageProvider, fit: BoxFit.contain):
+                              Image.file(this._image, fit: BoxFit.contain);
                               return ClipRRect(
                               borderRadius: BorderRadius.all(Radius.circular(20)),
-                                child: Image(image: imageProvider),
+                                child: (this._image==null)?Image(image: imageProvider):Image.file(this._image),
                               );
                             },
                             placeholder: (context, url) => ClipRRect(
@@ -244,11 +245,49 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   _changePhoto() async {
-    /*var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      _image = image;
-    });*/
-    showNotification("Not implemented yet :p", _scaffoldState.currentState);
+    showDialog<int>(
+      context: context,
+      builder: (BuildContext context)=>SimpleDialog(
+        //title: Icon(Icons.camera),
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.add_a_photo , color: whiteColor),
+                onPressed: ()=>Navigator.pop(context, 0),
+                iconSize: 70,
+                splashColor: mainHighlightColor,
+              ),
+              SizedBox(width: 20,),
+              IconButton(
+                icon: Icon(Icons.add_photo_alternate , color: whiteColor),
+                onPressed: ()=>Navigator.pop(context, 1),
+                iconSize: 70,
+                splashColor: mainHighlightColor,
+              ),
+            ],
+          )
+        ],
+        backgroundColor: whiteColor.withOpacity(0),
+      )
+    ).then(
+      (mode) async {
+        if(mode!=null){
+          var image;
+          switch (mode) {
+            case 0: image = await ImagePicker.pickImage(source: ImageSource.camera);
+              break;
+            case 1: image = await ImagePicker.pickImage(source: ImageSource.gallery);
+              break;
+          }
+          setState(() {
+            _image = image;
+          });
+        }
+      }
+    );
+    //showNotification("Not implemented yet :p", _scaffoldState.currentState);
   }
 
 
@@ -258,7 +297,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (!_formKeyUpdateInfos.currentState.validate()) return;
     if (lastnameController.text==user.lastname && firstnameController.text==user.firstname && 
     emailController.text==user.mail && phoneNumberController.text==user.phoneNumber && 
-    adressController.text==user.adress && selectedCountry==user.country)
+    adressController.text==user.adress && selectedCountry==user.country && this._image==null)
       setState((){
         _erreurTextInfos = "Vous n'avez fait aucune modification";
       } 

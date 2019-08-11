@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:home_teacher/vues/Utile.dart';
+import 'package:home_teacher/Utile.dart';
 import 'package:home_teacher/vues/Login.dart';
 import 'package:home_teacher/vues/Register.dart';
 import 'package:home_teacher/vues/PasswordRecovery.dart';

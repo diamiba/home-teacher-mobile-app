@@ -3,7 +3,7 @@ import 'package:home_teacher/vues/EditProfile.dart';
 import 'package:home_teacher/vues/EditProfileStudent.dart';
 import 'package:home_teacher/vues/EditProfileTeacher.dart';
 import 'package:home_teacher/vues/Explorer.dart';
-import 'package:home_teacher/vues/Utile.dart';
+import 'package:home_teacher/Utile.dart';
 import 'package:home_teacher/vues/Favoris.dart';
 import 'package:home_teacher/vues/Home.dart';
 import 'package:home_teacher/vues/Login.dart';
@@ -289,20 +289,16 @@ class Background extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget child = isConnected?
+    Widget filter = isConnected?
       Container(
         color: Color.fromRGBO(0, 0, 0, 0.3),
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
       )
       :Container(
         color: Color.fromRGBO(255, 255, 255, 0.5),
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
       );
 
     return CachedNetworkImage(
-      imageUrl: "url",
+      imageUrl: "https://back-end.diamiba.com/storage/background_mobile.png",
       imageBuilder: (context, imageProvider){
         return Container(
           decoration: BoxDecoration(
@@ -311,7 +307,7 @@ class Background extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          child: child,
+          child: filter,
         );
       },
       placeholder: (context, url) => Container(
@@ -328,7 +324,7 @@ class Background extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          child: child,
+          child: filter,
         );
       } 
     );
@@ -355,6 +351,7 @@ class _CustomBodyState extends State<CustomBody> {
       endDrawer: drawer(this.widget.isConnected),
       body: this.widget.haveBackground?
         Stack(
+          fit: StackFit.expand,
           children: <Widget>[
             Background(isConnected: this.widget.isConnected,),
             body()
@@ -536,7 +533,7 @@ class TeacherCard extends StatelessWidget {
                 backgroundColor: greenColor,
                 child: Icon(Icons.check, color: whiteColor, size: 35,),
               ),
-            ):Container(),
+            ):Container(height: 35,),
             Hero(
               tag: this.heroTag,
               transitionOnUserGestures: true,
@@ -547,7 +544,7 @@ class TeacherCard extends StatelessWidget {
                   shape: BoxShape.circle
                 ),
                 child: CachedNetworkImage(
-                  imageUrl: this._teacher.profilePicture,
+                  imageUrl: this._teacher.profilePicture!=null?this._teacher.profilePicture:"https://back-end.diamiba.com/storage/default.png",
                   imageBuilder: (context, imageProvider) => CircleAvatar(
                     backgroundImage: imageProvider,
                     radius: 70,
@@ -628,7 +625,7 @@ class CustomModalProgressHUD extends StatelessWidget {
 }
 
 
-Future<bool> demandeConfirmation(BuildContext context, String question) async {
+Future<bool> demandeConfirmation(BuildContext context, String question, {IconData icon}) async {
   bool x = false;
   bool reponse = await showModalBottomSheet<bool>(
     context: context,
@@ -638,19 +635,21 @@ Future<bool> demandeConfirmation(BuildContext context, String question) async {
         shrinkWrap: true,
         primary: false,
         children: <Widget>[
+          SizedBox(height: 40.0),
+          icon!=null?Center(child:Icon(icon, color: mainColor, size: 40,)):Container(),
           SizedBox(height: 20.0),
           CustomText(question, darkColor, 4, textAlign: TextAlign.center, padding: 0,),
           ButtonBar(
             children: <Widget>[
               FlatButton(
-                child: CustomText("Oui", greyColor, 5, textAlign: TextAlign.center, padding: 0,),
+                child: CustomText("Oui", mainColor, 5, textAlign: TextAlign.center, padding: 0,),
                 onPressed: (){
                   x=true;
                   Navigator.pop(context);
                   return true;
                 }),
               FlatButton(
-                child: CustomText("Non", greyColor, 5, textAlign: TextAlign.center, padding: 0,),
+                child: CustomText("Non", mainColor, 5, textAlign: TextAlign.center, padding: 0,),
                 onPressed: (){
                   x=false;
                   Navigator.pop(context);
@@ -676,4 +675,52 @@ showNotification(String message, ScaffoldState scaffold){
       action: SnackBarAction(label: "Ok", onPressed: (){}, textColor: whiteColor,),
     )
   );
+}
+
+
+class NoteTeacherWidget extends StatefulWidget {
+  @override
+  _NoteTeacherWidgetState createState() => _NoteTeacherWidgetState();
+}
+
+class _NoteTeacherWidgetState extends State<NoteTeacherWidget> {
+  int note=0, maxNote=5;
+  @override
+  Widget build(BuildContext context) {
+    List <Widget> liste = List();
+    for(int i=1; i<=maxNote; i++)
+      liste.add(
+        IconButton(
+          padding: const EdgeInsets.all(2),
+          icon: Icon(i<=note?Icons.star:Icons.star_border, color: mainColor,),
+          iconSize: 30,
+          onPressed: ()=>setState(()=>note=i),
+        )
+      );
+
+    return Container(
+      padding: EdgeInsets.only(top:25, left: 10, right: 10, bottom: 0),
+      child: Column(
+        children: <Widget>[
+          CustomText("$note/$maxNote", mainColor, 4),
+          Row(children: liste,mainAxisAlignment: MainAxisAlignment.center,),
+          ButtonBar(
+            alignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              FlatButton(
+                child: CustomText("Annuler", greyColor, 5),
+                onPressed: ()=>Navigator.of(context).pop(0),
+                splashColor: mainColor,
+              ),
+              FlatButton(
+                splashColor: mainColor,
+                child: CustomText("Noter", greyColor, 5),
+                onPressed: ()=>Navigator.of(context).pop(note),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
 }

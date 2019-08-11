@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:home_teacher/vues/Home.dart';
 import 'package:home_teacher/vues/PasswordRecovery.dart';
 import 'package:home_teacher/vues/Register.dart';
-import 'package:home_teacher/vues/Utile.dart';
+import 'package:home_teacher/Utile.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 
@@ -187,7 +187,7 @@ class _LoginPageState extends State<LoginPage> {
         break;
       case FacebookLoginStatus.error:
         print(result.errorMessage);
-        showNotification("Echec de l'identification par Facebook", _scaffoldState.currentState);
+        showNotification("Echec de l'identification par Facebook\n${result.errorMessage}", _scaffoldState.currentState);
         break;
     }
     /*setState(()=>_erreurText = "");

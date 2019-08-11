@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
-import 'package:home_teacher/vues/Utile.dart';
+import 'package:home_teacher/Utile.dart';
 
 class EditProfileStudentPage extends StatefulWidget {
   Student student;

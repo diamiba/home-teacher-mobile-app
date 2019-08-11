@@ -1,4 +1,4 @@
-package com.example.home_teacher;
+package app.home_teacher.africa.home_teacher;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

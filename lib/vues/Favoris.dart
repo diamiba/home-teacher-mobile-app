@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:home_teacher/vues/Utile.dart';
+import 'package:home_teacher/Utile.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
 
 class FavorisPage extends StatefulWidget {
@@ -51,7 +51,7 @@ class _FavorisPageState extends State<FavorisPage> {
     return Container(
       width: MediaQuery.of(context).size.width,
       color: lightGreyColor,
-      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 40),
       child: Column(
         children: liste
       )
