@@ -2,19 +2,20 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:home_teacher/Utile.dart';
+import 'package:home_teacher/Modele.dart';
+import 'package:home_teacher/Services.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
 
 class EditProfileTeacherPage extends StatefulWidget {
-  Teacher teacher;
-  EditProfileTeacherPage(this.teacher);
+  EditProfileTeacherPage();
   @override
-  _EditProfileTeacherPageState createState() => _EditProfileTeacherPageState(teacher);
+  _EditProfileTeacherPageState createState() => _EditProfileTeacherPageState(currentUser);
 }
 
 class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
   Teacher teacher;
-  int mark, maxMark=5;
-  List<String> levelTeached, districtTeached, subjectTeached;
+  //int mark, maxMark=5;
+  List<String> levelTeached, quarterTeached, subjectTeached;
   String selected;
   TextEditingController education, job, description;
   FocusNode jobFocusNode = FocusNode();
@@ -25,9 +26,9 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
   bool _isLoading = false;
 
   _EditProfileTeacherPageState(this.teacher){
-    levelTeached = this.teacher.levelTeached!=null?List.from(this.teacher.levelTeached):List();
-    districtTeached = this.teacher.districtTeached!=null?List.from(this.teacher.districtTeached):List();
-    subjectTeached = this.teacher.subjectTeached!=null?List.from(this.teacher.subjectTeached):List();
+    levelTeached = (this.teacher.levelTeached!=null && this.teacher.levelTeached.isNotEmpty)?List.from(this.teacher.levelTeached):List();
+    quarterTeached = (this.teacher.quarterTeached!=null && this.teacher.quarterTeached.isNotEmpty)?List.from(this.teacher.quarterTeached):List();
+    subjectTeached = (this.teacher.subjectTeached!=null && this.teacher.subjectTeached.isNotEmpty)?List.from(this.teacher.subjectTeached):List();
     education = TextEditingController(text: this.teacher.education);
     job = TextEditingController(text: this.teacher.job);
     description = TextEditingController(text: this.teacher.description);
@@ -38,67 +39,71 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
     SystemChrome.setEnabledSystemUIOverlays ([]); // cacher la status bar
     return CustomModalProgressHUD(_isLoading,
     CustomBody(
-      Center(
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
-          child: CustomCard(
-            Column(
-              children: <Widget>[
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: CustomText("Modifier mes informations d'enseignant", darkColor, 3, bold: true),
+      Container(),
+      children: [
+         SliverToBoxAdapter(
+          child: Center(
+            child: CustomCard(
+              Column(
+                children: <Widget>[
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: CustomText("Modifier mes informations d'enseignant", darkColor, 3, bold: true),
+                  ),
+                  Form(
+                    key: _formKeyUpdate,
+                    child:Column(
+                      children: <Widget>[
+                        CustomDropDown("Dans quel(s) quartier(s) enseignez-vous ?", "Exemple : Pissy", selected, SearchOptions.quarterList, (String selection) {if (!this.quarterTeached.contains(selection)) setState((){this.quarterTeached.add(selection);});}),
+                        MyChips((this.quarterTeached)),
+                        CustomDropDown("Quelle(s) discipline(s) enseignez-vous ?", "Exemple : Mathématiques", selected, SearchOptions.subjectList, (String selection) {if (!this.subjectTeached.contains(selection)) setState((){this.subjectTeached.add(selection);});}),
+                        MyChips(this.subjectTeached),
+                        CustomDropDown("Quelle(s) classe(s) enseignez-vous ?", "Exemple : 6 ème, 5 ème", selected, SearchOptions.levelList, (String selection) {if (!this.levelTeached.contains(selection)) setState((){this.levelTeached.add(selection);});}),
+                        MyChips(this.levelTeached),
+                        CustomTextField("Qu'avez-vous étudié ?", "Exemple : Audit et controle de gestion", TextInputType.text, education,
+                          validator: (String value) {
+                            if (value.isEmpty) return "Veuillez saisir votre dernier diplôme";
+                          },
+                          onFieldSubmited: (String value) {
+                            setState(()=>FocusScope.of(context).requestFocus(jobFocusNode));
+                          },
+                        ),
+                        CustomTextField("Quel est votre métier actuel?", "Exemple : Développeur informatique", TextInputType.text, job,
+                          focus: jobFocusNode,
+                          validator: (String value) {
+                            if (value.isEmpty) return "Veuillez saisir votre métier actuel";
+                          },
+                          onFieldSubmited: (String value) {
+                            setState(()=>FocusScope.of(context).requestFocus(descriptionFocusNode));
+                          },
+                        ),
+                        CustomTextField("Un petit résumé sur vous (Max : 200 caractères)", "", TextInputType.text, description, multiline: true,
+                          textInputAction: TextInputAction.done,
+                          textCapitalization: TextCapitalization.sentences,
+                          focus: descriptionFocusNode,
+                          validator: (String value) {
+                            if (value.isEmpty) return "Veuillez saisir un résumé sur vous";
+                          },
+                          onFieldSubmited: (pass) async {
+                            _update();
+                          },
+                        ),   
+                      ],
+                    )
+                  ),
+                  _erreurText.isEmpty?Container():CustomText(_erreurText, redColor, 6, padding: 5, textAlign: TextAlign.center,),
+                  CustomButton("ENREGISTER", mainColor, 
+                    () async=> _update(),
+                    margin: const EdgeInsets.only(top: 25.0,),
+                  ),
+                ],
                 ),
-                Form(
-                  key: _formKeyUpdate,
-                  child:Column(
-                    children: <Widget>[
-                      CustomDropDown("Dans quel(s) quartier(s) enseignez-vous ?", "Exemple : Pissy", selected, districtList, (String selection) {if (!this.districtTeached.contains(selection)) setState((){this.districtTeached.add(selection);});}),
-                      MyChips((this.districtTeached)),
-                      CustomDropDown("Quelle(s) discipline(s) enseignez-vous ?", "Exemple : Mathématiques", selected, subjectList, (String selection) {if (!this.subjectTeached.contains(selection)) setState((){this.subjectTeached.add(selection);});}),
-                      MyChips(this.subjectTeached),
-                      CustomDropDown("Quelle(s) classe(s) enseignez-vous ?", "Exemple : 6 ème, 5 ème", selected, levelList, (String selection) {if (!this.levelTeached.contains(selection)) setState((){this.levelTeached.add(selection);});}),
-                      MyChips(this.levelTeached),
-                      CustomTextField("Qu'avez-vous étudié ?", "Exemple : Baccalauréat", TextInputType.text, education,
-                        validator: (String value) {
-                          if (value.isEmpty) return "Veuillez saisir votre dernier diplôme";
-                        },
-                        onFieldSubmited: (String value) {
-                          setState(()=>FocusScope.of(context).requestFocus(jobFocusNode));
-                        },
-                      ),
-                      CustomTextField("Quel est votre métier actuel?", "Exemple : Développeur informatique", TextInputType.text, job,
-                        focus: jobFocusNode,
-                        validator: (String value) {
-                          if (value.isEmpty) return "Veuillez saisir votre métier actuel";
-                        },
-                        onFieldSubmited: (String value) {
-                          setState(()=>FocusScope.of(context).requestFocus(descriptionFocusNode));
-                        },
-                      ),
-                      CustomTextField("Un petit résumé sur vous (Max : 200 caractères)", "", TextInputType.text, description, multiline: true,
-                        textInputAction: TextInputAction.done,
-                        textCapitalization: TextCapitalization.sentences,
-                        focus: descriptionFocusNode,
-                        validator: (String value) {
-                          if (value.isEmpty) return "Veuillez saisir un résumé sur vous";
-                        },
-                        onFieldSubmited: (pass) async {
-                          _update();
-                        },
-                      ),   
-                    ],
-                  )
-                ),
-                _erreurText.isEmpty?Container():CustomText(_erreurText, redColor, 6, padding: 5, textAlign: TextAlign.center,),
-                CustomButton("ENREGISTER", mainColor, 
-                  () async=> _update(),
-                  margin: const EdgeInsets.only(top: 25.0,),
-                ),
-              ],
+                margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
+                padding: const EdgeInsets.symmetric(vertical: 35, horizontal: 25),
               ),
-            ),
           ),
-      ),
+        ),
+      ],
       pageName: "MON COMPTE",
       isConnected: true,
       horizontalPadding: 0,
@@ -113,30 +118,45 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
     setState(()=>_erreurText = "");
     if (!_formKeyUpdate.currentState.validate()) return;
 
-    if(districtTeached.isEmpty)
+    if(quarterTeached.isEmpty)
       setState(()=>_erreurText = "Vous devez choisir aumoins un quartier\n où vous enseigner");
     else if(subjectTeached.isEmpty)
       setState(()=>_erreurText = "Vous devez choisir aumoins une matière enseignée");
     else if(levelTeached.isEmpty)
       setState(()=>_erreurText = "Vous devez choisir aumoins une classe enseignée");
-    else if(compareList(levelTeached, teacher.levelTeached) && compareList(districtTeached, teacher.districtTeached) && 
+    else if(compareList(levelTeached, teacher.levelTeached) && compareList(quarterTeached, teacher.quarterTeached) && 
           compareList(subjectTeached, teacher.subjectTeached) && job.text==teacher.job && 
           education.text==teacher.education && description.text==teacher.description)
       setState(()=>_erreurText = "Vous n'avez fait aucune modification");
     else{
-      setState((){
-        _isLoading = true;
-        _erreurText = "";
-      } 
-      );
-      //print("school: ${school.text}");
-      await Future.delayed(Duration(seconds: 2));
-      setState((){
-        _isLoading = false;
-        showNotification("Changements enregistrés", _scaffoldState.currentState);
-        //_erreurText = "email inexistant";
-      } 
-      );
+      setState(() => _isLoading = true);
+      Map<String,dynamic> body = {
+        'TeachedLevel': levelTeached,
+        'TeacherQuarter': quarterTeached,
+        'TeachedSubject': subjectTeached,
+        'StudiesDomain': education.text,
+        'CurrentJob': job.text,
+        'LilResume': description.text,
+      };
+      RequestType reponse = await updateCurrentUserSpecialInfos(body, isStudent: false);
+      if(reponse.getisSuccess){
+        setState((){
+          _isLoading = false;
+          showNotification("Changements enregistrés", _scaffoldState.currentState);
+        });
+        this.teacher.levelTeached = levelTeached;
+        this.teacher.quarterTeached = quarterTeached;
+        this.teacher.subjectTeached = subjectTeached;
+        this.teacher.education = education.text;
+        this.teacher.job = job.text;
+        this.teacher.description = description.text;
+      }
+      else{
+        setState((){
+          _isLoading = false;
+          showNotification(reponse.geterrorMessage, _scaffoldState.currentState);
+        });
+      }
     }
   }
 
@@ -212,6 +232,7 @@ class _MyChipsState extends State<MyChips> {
     return Align(
       alignment: Alignment.topLeft,
       child: SingleChildScrollView(
+        reverse: true,
         padding: EdgeInsets.only(bottom: 15),
         scrollDirection: Axis.horizontal,
         child: Row(children: chips),

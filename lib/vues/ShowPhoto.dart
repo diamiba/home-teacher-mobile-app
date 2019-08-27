@@ -1,7 +1,6 @@
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'dart:io';
+import 'package:home_teacher/Utile.dart';
 
 const double _kMinFlingVelocity = 800.0;
 class ShowPhoto extends StatefulWidget {
@@ -85,20 +84,38 @@ class _ShowPhotoState extends State<ShowPhoto> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onScaleStart: _handleOnScaleStart,
-      onScaleUpdate: _handleOnScaleUpdate,
-      onScaleEnd: _handleOnScaleEnd,
-      child: ClipRect(
-        child: Transform(
-          transform: Matrix4.identity()
-            ..translate(_offset.dx, _offset.dy)
-            ..scale(_scale),
-          child: Hero(
-            tag: this.widget.id,
-            transitionOnUserGestures: true,
-            child: this.widget.image,
-          )
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Text("Photo de profil", style:TextStyle(color: whiteColor)),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          color: whiteColor,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      backgroundColor: Colors.black,
+      body: Center(
+        child: GestureDetector(
+          onScaleStart: _handleOnScaleStart,
+          onScaleUpdate: _handleOnScaleUpdate,
+          onScaleEnd: _handleOnScaleEnd,
+          child: ClipRect(
+            child: Transform(
+              transform: Matrix4.identity()
+                ..translate(_offset.dx, _offset.dy)
+                ..scale(_scale),
+              child: Hero(
+                tag: this.widget.id,
+                transitionOnUserGestures: true,
+                child: Container(
+                  child: this.widget.image, 
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  ),
+              )
+            ),
+          ),
         ),
       ),
     );

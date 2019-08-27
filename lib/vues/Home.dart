@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:home_teacher/Utile.dart';
+import 'package:home_teacher/Modele.dart';
+import 'package:home_teacher/Services.dart';
 import 'package:home_teacher/vues/Explorer.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
@@ -11,103 +13,182 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool searched = false;
-  String selectedDistrict;
-  String selectedSubject;
-  String selectedLevel;
+  bool searched = false, isSearching = false;
+  String selectedQuarter, selectedSubject, selectedLevel;
+  String lastSearchedQuarter, lastSearchedSubject, lastSearchedLevel;
+  RequestType result;
+  Widget resultWidget, suggestionsWidget;
+  bool isHeaderShown = true;
+  bool suggestionsShown = false;
+  ScrollController mainScrollController = ScrollController();
+  ScrollController myScrollController;
+  double lastScrollControlerPosition, phoneWidth, height;
 
   _HomePageState(){
-    selectedDistrict = districtList[0];
-    selectedSubject = subjectList[0];
-    selectedLevel = levelList[0];
+    selectedQuarter = SearchOptions.quarterList[0];
+    selectedSubject = SearchOptions.subjectList[0];
+    selectedLevel = SearchOptions.levelList[0];
+    resultWidget = SliverToBoxAdapter(child: Center(child: CustomText("Recherche en cours ...", darkColor, 3, bold: true, textAlign: TextAlign.center,),));
+    suggestionsWidget = SliverToBoxAdapter(child: Container());
+  }
+
+  void initState() {
+    myScrollController = ScrollController();
+    myScrollController.addListener(_scrollListener);
+    lastScrollControlerPosition = myScrollController.initialScrollOffset;
+    super.initState();
+  }
+
+  _scrollListener() {
+    //print("${myScrollController.offset} - $lastScrollControlerPosition  -  ${myScrollController.initialScrollOffset}");
+    if(mainScrollController.offset != mainScrollController.position.maxScrollExtent) this.isHeaderShown = true;
+    if(myScrollController.offset>lastScrollControlerPosition && this.isHeaderShown){ //move down
+      mainScrollController.jumpTo(mainScrollController.position.maxScrollExtent);
+      this.isHeaderShown = false;
+    }
+    else if(myScrollController.offset<lastScrollControlerPosition || lastScrollControlerPosition<0){ //move up
+      if(myScrollController.offset == myScrollController.initialScrollOffset && !this.isHeaderShown){
+        mainScrollController.animateTo(
+          mainScrollController.position.minScrollExtent,
+          curve: Curves.easeInOutCirc, duration: Duration(milliseconds: 150)
+        );
+        this.isHeaderShown = true;
+      }
+    }
+
+    lastScrollControlerPosition = myScrollController.offset;
   }
 
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays ([]); // cacher la status bar
-    double height = (MediaQuery.of(context).size.height-510);
-
+    height = (MediaQuery.of(context).size.height-460);
+    phoneWidth = MediaQuery.of(context).size.width;
     return CustomBody(
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          SizedBox(height: 50,),
-          searched?Container():Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-              Container(
-                height: 45,
-                child: CustomText("Home-Teacher",whiteColor, 1, bold: true, padding: 0,),
-              ),
-              Container(
-                height: 20,
-                margin: const EdgeInsets.only(left: 6),
-                child: TyperAnimatedTextKit(
-                  isRepeatingAnimation: false,
-                  duration: Duration(seconds: 3),
-                  text: ["Nos professeurs n'attendent que vous."],
-                  textStyle: TextStyle(
-                      fontSize: size4,
-                      color: whiteColor
+      Container(),
+      children: <Widget>[
+        SliverList(
+          delegate: SliverChildListDelegate(
+            [
+              SizedBox(height: 90,),
+              searched?Container():Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                  Container(
+                    height: 45,
+                    child: CustomText("Home-Teacher",whiteColor, 1, bold: true, padding: 0,),
                   ),
-                  textAlign: TextAlign.start,
-                  alignment: AlignmentDirectional.topStart // or Alignment.topLeft
+                  Container(
+                    height: 20,
+                    margin: const EdgeInsets.only(left: 6),
+                    child: TyperAnimatedTextKit(
+                      isRepeatingAnimation: false,
+                      duration: Duration(milliseconds: 1500),
+                      text: ["Nos professeurs n'attendent que vous."],
+                      textStyle: TextStyle(
+                          fontSize: size4,
+                          color: whiteColor
+                      ),
+                      textAlign: TextAlign.start,
+                      alignment: AlignmentDirectional.topStart // or Alignment.topLeft
+                    ),
+                  ),
+                  SizedBox(height: 50,),
+                ],),
+              ),
+              AnimatedContainer(
+                duration: Duration(milliseconds: 500),
+                curve: Curves.easeInOutCirc,
+                margin: EdgeInsets.symmetric(horizontal: searched?45.0:0),
+                padding: const EdgeInsets.only(top: 10, bottom: 5, left: 30.0, right: 30.0),
+                color: whiteColor,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    choiceElement(SearchOptions.quarterList, this.selectedQuarter, (String selection) {if (selection != this.selectedQuarter) setState((){this.selectedQuarter = selection;});}),
+                    choiceElement(SearchOptions.subjectList, this.selectedSubject, (String selection) {if (selection != this.selectedSubject) setState((){this.selectedSubject = selection;});}),
+                    choiceElement(SearchOptions.levelList, this.selectedLevel, (String selection) {if (selection != this.selectedLevel) setState((){this.selectedLevel = selection;});}, isLast: true),
+                  ],
                 ),
               ),
-              SizedBox(height: 50,),
-            ],),
+              AnimatedContainer(
+                duration: Duration(milliseconds: 500),
+                curve: Curves.easeInOutCirc,
+                margin: EdgeInsets.symmetric(horizontal: searched?45.0:0),
+                color: mainColor,
+                child: CustomButton("CHERCHER !", mainColor, 
+                  () async {
+                    print('CHERCHER !');
+                    await resultCard();
+                  },
+                  shadow: false,
+                ),
+              ),
+              AnimatedContainer(
+                duration: Duration(milliseconds: 500),
+                curve: Curves.easeInOutCirc,
+                margin: EdgeInsets.symmetric(horizontal: isSearching?45.0:100),
+                color: mainColor,
+                child: Visibility(visible: isSearching, child: LinearProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(mainColor)),),
+              ),
+              searched?SizedBox(height: 50,):SizedBox(height: height<60?60:height),
+              searched?Container()
+              :Center(
+                child: GestureDetector(
+                  child: Container(
+                    padding: EdgeInsets.all(0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(Icons.arrow_drop_down, color: whiteColor, size: 30,),
+                        CustomText("EXPLORER", whiteColor, 4, bold: true, padding: 0,),
+                      ],
+                    ),
+                  ),
+                  onTap: (){
+                    print('Explorer');
+                    Navigator.pushNamed(context,Vues.explorer);
+                  },
+                ),
+              ),
+            ],
           ),
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: searched?45.0:0),
-            padding: const EdgeInsets.only(top: 10, bottom: 5, left: 30.0, right: 30.0),
-            color: whiteColor,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                choiceElement(districtList, this.selectedDistrict, (String selection) {if (selection != this.selectedDistrict) setState((){this.selectedDistrict = selection;});}),
-                choiceElement(subjectList, this.selectedSubject, (String selection) {if (selection != this.selectedSubject) setState((){this.selectedSubject = selection;});}),
-                choiceElement(levelList, this.selectedLevel, (String selection) {if (selection != this.selectedLevel) setState((){this.selectedLevel = selection;});}, isLast: true),
-              ],
+        ),
+        SliverToBoxAdapter(
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 500),
+            curve: Curves.easeInOutCirc,
+            width: MediaQuery.of(context).size.width,
+            height: this.searched?MediaQuery.of(context).size.height-kToolbarHeight:0,
+            color: lightGreyColor,
+            child: Scrollbar(
+              child: CustomScrollView(
+                physics: BouncingScrollPhysics(),
+                controller: myScrollController,
+                slivers: <Widget>[
+                  /*SliverAppBar(
+                    automaticallyImplyLeading: false,
+                    actions: <Widget>[Container()],
+                    floating: true,
+                    title: ,
+                  ),*/
+                  SliverToBoxAdapter(child: SizedBox(height: 40,),),
+                  resultWidget,
+                  suggestionsWidget,
+                  SliverToBoxAdapter(child: SizedBox(height: 40,),),
+                ],
+              ),
             ),
           ),
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: searched?45.0:0),
-            color: mainColor,
-            child: CustomButton("CHERCHER !", mainColor, 
-              (){
-                print('CHERCHER !');
-                if(!searched)
-                  setState(() {
-                  searched = true; 
-                  });
-                /*Navigator.push(context,
-                  MaterialPageRoute(builder: (context)=> SearchPage())
-                );*/
-              },
-              shadow: false,
-            ),
-          ),
-          searched?SizedBox(height: 50,):SizedBox(height: height<60?60:height),
-          searched?resultCard(teachers):Center(
-            child: FlatButton.icon(
-              icon: Icon(Icons.arrow_drop_down, color: whiteColor, size: 50,),
-              label: CustomText("EXPLORER", whiteColor, 4, bold: true,),
-              onPressed: (){
-                print('Explorer');
-                Navigator.push(context,
-                  MaterialPageRoute(builder: (context)=> ExplorerPage())
-                );
-              }
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
       pageName: "ENSEIGNANTS",
       isConnected: true,
       horizontalPadding: 0,
       bottomPadding: 0,
+      myScrollController: mainScrollController,
     );
   }
 
@@ -137,31 +218,121 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget resultCard(List<Teacher> tearchersFound){
-    List <Widget> liste = List();
-    List <Widget> myTeachers = List();
-    liste.add(CustomText("Résultats de la recherche.", darkColor, 2, bold: true, padding: 5,));
-    if(tearchersFound != null && tearchersFound.isNotEmpty){
-      liste.add(CustomText("${tearchersFound.length} enseignant${tearchersFound.length>1?"s ont été trouvés":" a été trouvé"} !", greyColor, 4, padding: 5,overflow: false));
-      liste.add(SizedBox(height: 40,));
-      for(Teacher teacher in tearchersFound)
-        myTeachers.add(TeacherCard(teacher, "Home${teacher.id}"));
+  Future resultCard({bool refresh = false}) async {
+    RequestType reponse;
+    if(refresh) reponse = this.result;
+    else reponse = await loadTeachers();
+
+    if(reponse.isSuccess){
+      Widget result, suggestions;
+      List<Teacher> tearchersFound = teachersFromList(reponse.data["results"]);
+      List<Teacher> tearchersSuggestion = teachersFromList(reponse.data["suggestions"]);
+      if(tearchersFound != null && tearchersFound.isNotEmpty){
+        result = SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              print(index);
+              if(index==0) return Center(child: CustomText("Résultats de la recherche.", darkColor, 2, bold: true, padding: 5,));
+              if(index==1) return Center(child: CustomText("${tearchersFound.length} enseignant${tearchersFound.length>1?"s ont été trouvés":" a été trouvé"} !", greyColor, 4, padding: 5,overflow: false));
+              if(index==2) return SizedBox(height: 40,);
+              return Container(
+                padding: EdgeInsets.symmetric(horizontal: (phoneWidth-(phoneWidth<400?320:350))/2),
+                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width<400?320:350),
+                child: TeacherCard(tearchersFound[index-3], "Home${tearchersFound[index-3].id}"),
+              );
+            },
+            childCount: tearchersFound.length+3,
+          ),
+        );
+      }
+      else
+        result = SliverToBoxAdapter(child: notFoundWidget("Aucun résultat n'a été trouvé.", "Vérifiez vos critères de recherche, et reccommencez."));
       
-      liste.add(Wrap(
-        spacing: 15,
-        runSpacing: 10,
-        children: myTeachers,
-      ));
+      if(tearchersSuggestion!=null && tearchersSuggestion.isNotEmpty){
+        suggestions = SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              print(index);
+              if(index==0) return SizedBox(height: 40,);
+              if(index==1 && !suggestionsShown)
+                return Container(
+                  padding: EdgeInsets.symmetric(horizontal: (phoneWidth-250)/2),
+                  child: FlatButton.icon(
+                    icon: Icon(Icons.add, color: mainColor,),
+                    label: CustomText("Voir les suggestions", mainColor, 4), 
+                    onPressed: () => seeSuggestions(),
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(color: mainColor)
+                    ),
+                    splashColor: mainHighlightColor,
+                  ),
+                );
+              if(index==1 && suggestionsShown) return Center(child: CustomText("Suggestions", darkColor, 2, bold: true, padding: 5,));
+              if(index==2 && suggestionsShown) return Center(child: CustomText("${tearchersSuggestion.length} enseignant${tearchersSuggestion.length>1?"s ont été suggérés":" a été suggéré"} !", greyColor, 4, padding: 5,overflow: false));
+              if(index==3 && suggestionsShown) return SizedBox(height: 40,);
+              if(suggestionsShown)
+                return Container(
+                  padding: EdgeInsets.symmetric(horizontal: (phoneWidth-(phoneWidth<400?320:350))/2),
+                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width<400?320:350),
+                  child: TeacherCard(tearchersSuggestion[index-4], "HomeSuggestion${tearchersSuggestion[index-4].id}"),
+                );
+            },
+            childCount: suggestionsShown?tearchersSuggestion.length+4:2,
+          ),
+        );
+      }
+      setState(() {
+        resultWidget = result;
+        if(suggestions != null) suggestionsWidget = suggestions;
+        isSearching = false; 
+      });
     }
     else
-      liste.add(CustomText("Aucun enseignant n'a été trouvé !", greyColor, 4, padding: 5,overflow: false));
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      color: lightGreyColor,
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 40),
-      child: Column(
-        children: liste
-      )
-    );
+      setState(() {
+        suggestionsWidget = SliverToBoxAdapter(child: Container());
+        resultWidget = SliverToBoxAdapter(child: errorWidget(reponse));
+        isSearching = false; 
+      });          
+  }
+
+  seeSuggestions() {
+    print("object");
+    //setState(() => suggestionsShown = true);
+    suggestionsShown = true;
+    resultCard(refresh: true);
+  }
+
+  Future<RequestType> loadTeachers() async {
+    if(!searched)
+      setState(() {
+        searched = true;
+        isSearching = true; 
+      });
+
+    RequestType reponse;
+    if(lastSearchedLevel==null || lastSearchedQuarter==null || lastSearchedSubject==null ||
+    !(lastSearchedLevel==selectedLevel && lastSearchedQuarter==selectedQuarter && lastSearchedSubject==selectedSubject)){
+      lastSearchedLevel = selectedLevel;
+      lastSearchedQuarter = selectedQuarter;
+      lastSearchedSubject = selectedSubject;
+      setState(() => isSearching = true);
+      reponse = await searchTeacher(selectedSubject, selectedLevel, selectedQuarter);
+      suggestionsShown = false;
+        if(reponse.isSuccess)
+          this.result = reponse;
+        return reponse;
+    }
+    else{
+      if(this.result == null){
+        setState(() => isSearching = true);
+        reponse = await searchTeacher(selectedSubject, selectedLevel, selectedQuarter);
+        suggestionsShown = false;
+        if(reponse.isSuccess)
+          this.result = reponse;
+        return reponse;
+      }
+      else
+        return this.result;
+    }
   }
 }

@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:home_teacher/vues/EditProfile.dart';
 import 'package:home_teacher/vues/EditProfileStudent.dart';
 import 'package:home_teacher/vues/EditProfileTeacher.dart';
 import 'package:home_teacher/vues/Explorer.dart';
 import 'package:home_teacher/Utile.dart';
+import 'package:home_teacher/Modele.dart';
+import 'package:home_teacher/Services.dart';
 import 'package:home_teacher/vues/Favoris.dart';
 import 'package:home_teacher/vues/Home.dart';
 import 'package:home_teacher/vues/Login.dart';
@@ -11,9 +15,23 @@ import 'package:home_teacher/vues/PasswordRecovery.dart';
 import 'package:home_teacher/vues/Register.dart';
 import 'package:home_teacher/vues/TeacherDetails.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:sticky_headers/sticky_headers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+
+class Vues{
+  static String login = "login";
+  static String register = "register";
+  static String teacherDetails = "teacherDetails";
+  static String showPhoto = "showPhoto";
+  static String passwordRecovery = "passwordRecovery";
+  static String passwordChange = "passwordChange";
+  static String home = "home";
+  static String favoris = "favoris";
+  static String explorer = "explorer";
+  static String editTeacher = "editTeacher";
+  static String editStudent = "editStudent";
+  static String editCommon = "editCommon";
+}
 
 
 class CustomCard extends StatelessWidget {
@@ -77,7 +95,7 @@ class CustomText extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: this.padding, horizontal: 5.0),
       child: Text(
-        text,
+        text!=null?text:"",
         style: TextStyle(color: color,
           fontSize: size,
           fontWeight: bold?FontWeight.bold:FontWeight.normal,
@@ -106,10 +124,10 @@ class CustomButton extends StatelessWidget {
       padding: const EdgeInsets.all(0),
       height: 40,
       decoration: BoxDecoration(
-        boxShadow:this.shadow?[BoxShadow(blurRadius: 2, color: darkColor.withOpacity(0.7), spreadRadius: 0)]:null,
+        //boxShadow:this.shadow?[BoxShadow(blurRadius: 2, color: darkColor.withOpacity(0.7), spreadRadius: 0)]:null,
         borderRadius: BorderRadius.all(Radius.circular(3)),
       ),
-      child: FlatButton(
+      child: RaisedButton(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(3)),
         ),
@@ -118,8 +136,40 @@ class CustomButton extends StatelessWidget {
           children: <Widget>[CustomText(text, whiteColor, 4, padding: 0, overflow: true,),],
         ),
         color: color,
+        splashColor: Colors.black.withOpacity(0.2),
+        elevation: this.shadow?2:0,
+        highlightElevation: this.shadow?15:0,
+        animationDuration: Duration(milliseconds: 500),
         onPressed: this.onPressed,
       ),
+    );
+  }
+}
+
+
+class DisableField extends StatelessWidget {
+  String title, content;
+  DisableField(this.title, this.content);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 5.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+        CustomText(this.title, greyColor, 5, padding: 0,),
+        Container(
+          height: 48,
+          padding: const EdgeInsets.only(top:0.0, bottom:0.0, left: 30.0, right: 10),
+          alignment: Alignment.centerLeft,
+          child: CustomText(this.content!=null?this.content:"-", greyColor, 5, padding: 0,),
+          decoration: BoxDecoration(
+            color: lightGreyColor,
+            borderRadius: BorderRadius.all(Radius.circular(3)),
+          ),
+        ),
+      ]
+      )
     );
   }
 }
@@ -263,7 +313,7 @@ class _CustomDropDownState extends State<CustomDropDown> {
           ),
           padding: const EdgeInsets.only(top:0.0, bottom:0.0, left: 30.0, right: 10),
           child: DropdownButton<String>(
-            style: TextStyle(fontSize: size5, color: darkColor),
+            style: TextStyle(fontSize: size5, color: darkColor,),
             icon: Icon(
               Icons.arrow_drop_down,
               color: greyColor,
@@ -286,6 +336,7 @@ class _CustomDropDownState extends State<CustomDropDown> {
 class Background extends StatelessWidget {
   bool isConnected;
   Background({this.isConnected = false});
+  Widget image;
 
   @override
   Widget build(BuildContext context) {
@@ -296,28 +347,41 @@ class Background extends StatelessWidget {
       :Container(
         color: Color.fromRGBO(255, 255, 255, 0.5),
       );
-
-    return CachedNetworkImage(
-      imageUrl: "https://back-end.diamiba.com/storage/background_mobile.png",
-      imageBuilder: (context, imageProvider){
-        return Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: imageProvider,
-              fit: BoxFit.cover,
+    
+    try {
+      image = CachedNetworkImage(
+        imageUrl: "https://back-end.diamiba.com/storage/background_mobile.png",
+        imageBuilder: (context, imageProvider){
+          return Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: imageProvider,
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          child: filter,
-        );
-      },
-      placeholder: (context, url) => Container(
-        color: isConnected?darkColor:whiteColor,
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-      ),
-      errorWidget: (context, url, error){
-        print(error);
-        return Container(
+            child: filter,
+          );
+        },
+        placeholder: (context, url) => Container(
+          color: isConnected?darkColor:whiteColor,
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+        ),
+        errorWidget: (context, url, error){
+          return Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("images/backgrown.png"),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: filter,
+          );
+        } 
+      );
+    } catch (e) {
+      if (image == null)
+        image = Container(
           decoration: BoxDecoration(
             image: DecorationImage(
               image: AssetImage("images/backgrown.png"),
@@ -326,61 +390,76 @@ class Background extends StatelessWidget {
           ),
           child: filter,
         );
-      } 
-    );
+    }
+    return image;
   }
 }
 
-class CustomBody extends StatefulWidget {
-  Widget content;
+
+
+class MyDrawer extends StatefulWidget {
   String pageName;
-  bool isConnected, isSearch, haveBackground;
-  double horizontalPadding, bottomPadding;
-  var scaffoldState;
-  CustomBody(this.content, {this.pageName, this.isConnected = false, this.horizontalPadding = 15, this.bottomPadding = 20, this.haveBackground = true, this.isSearch = false, this.scaffoldState});
+  bool isConnected;
+  Function animateIcon;
+  MyDrawer(this.pageName, this.isConnected, this.animateIcon);
   @override
-  _CustomBodyState createState() => _CustomBodyState();
+  _MyDrawerState createState() => _MyDrawerState();
 }
 
-class _CustomBodyState extends State<CustomBody> {
+class _MyDrawerState extends State<MyDrawer>  with SingleTickerProviderStateMixin {
+  bool  isLoading = false;
+  AnimationController _menuAnimationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _menuAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+    this.widget.animateIcon(true);
+    _menuAnimationController.forward();
+    this.widget.animateIcon(false);
+  }
+
+  @override
+  void dispose() {
+    //this.widget.animateIcon(false);
+    _menuAnimationController.reverse();
+    _menuAnimationController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: this.widget.scaffoldState,
-      backgroundColor: lightGreyColor,
-      endDrawer: drawer(this.widget.isConnected),
-      body: this.widget.haveBackground?
-        Stack(
-          fit: StackFit.expand,
-          children: <Widget>[
-            Background(isConnected: this.widget.isConnected,),
-            body()
-          ],
-        )
-      :body()
-    );
-  }
-
-  Widget drawer(bool isConnected){
     List<Widget> liste = List();
     liste.add(SizedBox(height: 20,),);
     liste.add(
       Align(
         alignment: Alignment.topLeft,
-        child: Padding(
-          padding: const EdgeInsets.only(left: 20.0),
-          child: GestureDetector(
-            child: Icon(Icons.cancel, color: whiteColor, size: 35,),
-            onTap: ()=> Navigator.of(context).pop(),
+        child: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.all(0.0),
+          margin: EdgeInsets.only(left: 20.0),
+          height: 32,
+          width: 35,
+          child: FlatButton(
+            padding: const EdgeInsets.all(0.0),
+            child: AnimatedIcon(
+              color: whiteColor,
+              icon: AnimatedIcons.menu_close,
+              progress: _menuAnimationController,
             ),
+            onPressed: () async {
+              await _menuAnimationController.reverse();
+              Navigator.of(context).pop();
+            },
+          ),
         ),
       ),
     );
     liste.add(SizedBox(height: 20,),);
     liste.add(
       Container(
-        width: 50,
-        height: 60,
+        width: 30,
+        height: 40,
         decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage("images/logo_white.png"),
@@ -389,22 +468,24 @@ class _CustomBodyState extends State<CustomBody> {
       )
     );
     liste.add(SizedBox(height: 40,),);
-    if(isConnected){
-      liste.add(drawerItem("ENSEIGNANTS", HomePage()));
-      liste.add(drawerItem("EXPLORER", ExplorerPage()));
-      liste.add(drawerItem("FAVORIS", FavorisPage()));
+    if(this.widget.isConnected){
+      liste.add(drawerItem("ENSEIGNANTS", Vues.home));
+      liste.add(drawerItem("EXPLORER", Vues.explorer));
+      liste.add(drawerItem("FAVORIS", Vues.favoris));
       if(currentUser is Teacher)
-        liste.add(drawerItem("MON COMPTE", EditProfileTeacherPage(currentUser)));
+        liste.add(drawerItem("MON COMPTE", Vues.editTeacher));
       else
-        liste.add(drawerItem("MON COMPTE", EditProfileStudentPage(currentUser)));
-      liste.add(drawerItem("MODIFIER MES INFORMATIONS", EditProfilePage(currentUser)));
+        liste.add(drawerItem("MON COMPTE", Vues.editStudent));
+      liste.add(drawerItem("MODIFIER MES INFORMATIONS", Vues.editCommon));
       liste.add(drawerItem("DECONNEXION", null, isLogout: true));
     }
     else{
-      liste.add(drawerItem("CONNEXION", LoginPage()));
-      liste.add(drawerItem("INSCRIPTION", RegisterPage()));
-      liste.add(drawerItem("MOT DE PASSE OUBLIÉ", PasswordRecoveryPage()));
+      liste.add(drawerItem("CONNEXION", Vues.login));
+      liste.add(drawerItem("INSCRIPTION", Vues.register));
+      liste.add(drawerItem("MOT DE PASSE OUBLIÉ", Vues.passwordRecovery));
     }
+    liste.add(Visibility(child: LinearProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(mainColor)), visible: isLoading,));
+
            
     return Drawer(
       child: Container(
@@ -418,13 +499,235 @@ class _CustomBodyState extends State<CustomBody> {
     );
   }
 
+  Widget drawerItem(String texte, String destinationPage, {isLogout = false}){
+    return Container(
+      color: (texte==this.widget.pageName)?mainHighlightColor:mainColor,
+      child: CustomButton(texte, (texte==this.widget.pageName)?mainHighlightColor:mainColor,
+        () async {
+          if(!isLogout){
+            Navigator.of(context).pop();
+            if(texte!=this.widget.pageName)
+              Navigator.pushNamed(context, destinationPage);
+          }
+          else{
+            bool accord = await demandeConfirmation(context, "Voulez vous vraiment vous déconnecter?", icon: Icons.exit_to_app);
+            if(!accord) return;
+            setState(() => isLoading=true );
+            var reponse = await logout();
+            if(reponse.isSuccess || reponse.erreurType == ErreurType.unauthorized){
+              for(int i=0; i<4; i++){
+                bool success2 = await deleteAllStorage();
+                if(success2) break;
+              }
+              while(Navigator.of(context).canPop())
+                Navigator.of(context).pop();
+              Navigator.of(context).pushReplacementNamed(Vues.login);
 
+              currentUser = null;
+              currentToken = null;
+            }
+            setState(() => isLoading = false );
+          }
+        },
+        shadow: false,
+      ),
+    );
+  }
+}
+
+
+class CustomBody extends StatefulWidget {
+  Widget content;
+  List<Widget> children;
+  String pageName;
+  bool isConnected, isSearch, haveBackground;
+  double horizontalPadding, bottomPadding;
+  var scaffoldState;
+  ScrollController myScrollController;
+  CustomBody(this.content, {this.children, this.pageName, this.isConnected = false, this.horizontalPadding = 15, this.bottomPadding = 20, this.haveBackground = true, this.isSearch = false, this.scaffoldState, this.myScrollController}){
+    /*if(scaffoldState==null) scaffoldState = GlobalKey<ScaffoldState>();
+    this.scaffoldState = scaffoldState;*/
+    currentScaffoldState = this.scaffoldState;
+  }
+  @override
+  _CustomBodyState createState() => _CustomBodyState();
+}
+
+class _CustomBodyState extends State<CustomBody>  with TickerProviderStateMixin {
+  bool  isLoading = false;
+  ScrollController _scrollController;
+  AnimationController _menuAnimationController;
+  AnimationController _colorAnimationController;
+  Animation _colorTween;
+  
+
+  @override
+  void initState() {
+    if(this.widget.myScrollController != null)
+      _scrollController = this.widget.myScrollController;
+    else
+      _scrollController = ScrollController();
+    _scrollController.addListener(_scrollListener);
+    _menuAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+    _colorAnimationController = AnimationController(vsync: this, duration: Duration(seconds: 0));
+    _colorTween = ColorTween(begin: mainColor.withOpacity(0), end: mainColor).animate(_colorAnimationController);
+    super.initState();
+  }
+
+  _scrollListener() {
+    _colorAnimationController.animateTo(_scrollController.offset / 56);
+  }
+
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.removeListener(_scrollListener);
+    _menuAnimationController.dispose();
+    _colorAnimationController.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      key: this.widget.scaffoldState,
+      backgroundColor: lightGreyColor,
+      endDrawer: MyDrawer(this.widget.pageName, this.widget.isConnected, this.animateIcon),//  drawer(this.widget.isConnected),
+      body: this.widget.haveBackground?
+      Stack(
+        children: <Widget>[
+          Background(isConnected: this.widget.isConnected,),
+          body(),
+        ],
+      )
+      :body(),
+    );
+  }
+
+  Widget appBar(bool haveBackground){
+    if(haveBackground)
+      return AnimatedBuilder(
+          animation: _colorAnimationController,
+          builder: (context, child) {
+          return SliverAppBar(
+            pinned: true,
+            automaticallyImplyLeading: false,
+            actions: <Widget>[Container(),],
+            title: Row(
+              children: <Widget>[
+                this.widget.isConnected?Container(
+                  width: 80,
+                  height: 35,
+                  margin: EdgeInsets.only(left: 25.0),
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("images/logo_white.png"),
+                    ),
+                  ),
+                ):Container(),
+                Spacer(flex: 1,),
+                Builder(
+                  builder: (context) {
+                    return Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.all(0.0),
+                      margin: EdgeInsets.only(right: 25.0),
+                      height: 32,
+                      width: 35,
+                      decoration: BoxDecoration(
+                        color: mainColor,
+                        borderRadius: BorderRadius.all(Radius.circular(2)),
+                      ),
+                      child: FlatButton(
+                        padding: const EdgeInsets.all(0.0),
+                        child: AnimatedIcon(
+                          color: whiteColor,
+                          icon: AnimatedIcons.menu_close,
+                          progress: _menuAnimationController,
+                        ),
+                        onPressed: () async {
+                          await animateIcon(true);
+                          Scaffold.of(context).openEndDrawer();
+                        },
+                      ),
+                    );
+                  }
+                ),
+              ],
+            ),
+            backgroundColor: _colorTween.value,
+          );
+        }
+      );
+    else
+      return SliverAppBar(
+        pinned: true,
+        automaticallyImplyLeading: false,
+        actions: <Widget>[Container(),],
+        title: Row(
+          children: <Widget>[
+            this.widget.isConnected?Container(
+              width: 80,
+              height: 35,
+              margin: EdgeInsets.only(left: 25.0),
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage("images/logo_white.png"),
+                ),
+              ),
+            ):Container(),
+            Spacer(flex: 1,),
+            Builder(
+              builder: (context) {
+                return Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.all(0.0),
+                  margin: EdgeInsets.only(right: 25.0),
+                  height: 32,
+                  width: 35,
+                  decoration: BoxDecoration(
+                    color: mainColor,
+                    borderRadius: BorderRadius.all(Radius.circular(2)),
+                  ),
+                  child: FlatButton(
+                    padding: const EdgeInsets.all(0.0),
+                    child: AnimatedIcon(
+                      color: whiteColor,
+                      icon: AnimatedIcons.menu_close,
+                      progress: _menuAnimationController,
+                    ),
+                    onPressed: () async {
+                      await animateIcon(true);
+                      Scaffold.of(context).openEndDrawer();
+                    },
+                  ),
+                );
+              }
+            ),
+          ],
+        ),
+        backgroundColor: mainColor,
+      );
+  }
 
   Widget body(){
+    List<Widget> mySlivers = List<Widget>();
+    mySlivers.add(appBar(this.widget.haveBackground));
+    if(this.widget.children != null)
+      mySlivers.addAll(this.widget.children);
+    return CustomScrollView(
+      controller: _scrollController,
+      physics: BouncingScrollPhysics(),
+      slivers: mySlivers,
+    );
+  }
+
+  /*Widget boddy(){
     return SafeArea(
       child: ListView(
+        controller: this.widget.myScrollController,
         children: <Widget>[
-          SizedBox(height: this.widget.haveBackground?30:0,),
+          //SizedBox(height: this.widget.haveBackground?30:0,),
           StickyHeaderBuilder(
             overlapHeaders: true,
             builder: (BuildContext context, double stuckAmount) {
@@ -432,7 +735,6 @@ class _CustomBodyState extends State<CustomBody> {
               double headerOpacity = (stuckAmount<1)?0:1;
               return new Container(
                 height: 55.0,
-                //color: mainColor.withOpacity((stuckAmount-0.32).clamp(0.0, 1.0)/0.68),
                 padding: new EdgeInsets.symmetric(horizontal: 10.0),
                 decoration: BoxDecoration(
                   color: mainColor.withOpacity(headerOpacity),
@@ -462,10 +764,16 @@ class _CustomBodyState extends State<CustomBody> {
                         borderRadius: BorderRadius.all(Radius.circular(2)),
                       ),
                       child: FlatButton(
-                        highlightColor: mainHighlightColor,
                         padding: const EdgeInsets.all(0.0),
-                        child: Icon(Icons.menu, color: whiteColor, size: 30,),
-                        onPressed: ()=>Scaffold.of(context).openEndDrawer(),
+                        child: AnimatedIcon(
+                          color: whiteColor,
+                          icon: AnimatedIcons.menu_close,
+                          progress: _menuAnimationController,
+                        ),
+                        onPressed: () async {
+                          await animateIcon(true);
+                          Scaffold.of(context).openEndDrawer();
+                        },
                       ),
                     ),
                   ],
@@ -480,29 +788,11 @@ class _CustomBodyState extends State<CustomBody> {
         ],
       ),
     );
-  }
+  }*/
 
-  Widget drawerItem(String texte, Widget destinationPage, {isLogout = false}){
-    return Container(
-      color: (texte==this.widget.pageName)?mainHighlightColor:mainColor,
-      child: CustomButton(texte, (texte==this.widget.pageName)?mainHighlightColor:mainColor,
-        (){
-          if(!isLogout){
-            Navigator.of(context).pop();
-            if(texte!=this.widget.pageName)
-              Navigator.push(context,
-                MaterialPageRoute(builder: (context)=> destinationPage)
-              );
-          }
-          else{
-            while(Navigator.of(context).canPop())
-              Navigator.of(context).pop();
-            currentUser = null;
-          }
-        },
-        shadow: false,
-      ),
-    );
+  animateIcon(bool isOpen) async {
+    if(isOpen) await _menuAnimationController.forward();
+    else await _menuAnimationController.reverse();
   }
 }
 
@@ -512,10 +802,11 @@ class _CustomBodyState extends State<CustomBody> {
 class TeacherCard extends StatelessWidget {
   Teacher _teacher;
   bool isFavoriteCard;
+  int favoriteId;
   Function retirerFavoris;
   String heroTag;
-  TeacherCard(this._teacher, this.heroTag, {this.isFavoriteCard = false, this.retirerFavoris});
-  int maxMark=5;
+  TeacherCard(this._teacher, this.heroTag, {this.isFavoriteCard = false, this.retirerFavoris, this.favoriteId});
+  //int maxMark=5;
 
   @override
   Widget build(BuildContext context) {
@@ -524,16 +815,17 @@ class TeacherCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 10,),
       width: phoneWidth<400?320:350,
+      constraints: BoxConstraints(maxWidth: phoneWidth<400?320:350),
       child: CustomCard(
         Column(
           children: <Widget>[
-            this._teacher.isChecked?Align(
+            (this._teacher.phoneVerified!=null && this._teacher.phoneVerified==1)?Align(
               alignment: Alignment.topRight,
               child: CircleAvatar(
                 backgroundColor: greenColor,
-                child: Icon(Icons.check, color: whiteColor, size: 35,),
+                child: Icon(Icons.check, color: whiteColor, size: 25,),
               ),
-            ):Container(height: 35,),
+            ):Container(height: 25,),
             Hero(
               tag: this.heroTag,
               transitionOnUserGestures: true,
@@ -573,7 +865,7 @@ class TeacherCard extends StatelessWidget {
               (){
                 print("Voir professeur"); 
                 Navigator.push(context,
-                  MaterialPageRoute(builder: (context)=> TeacherDetailsPage(this._teacher, this.heroTag))
+                  MaterialPageRoute(builder: (context)=> TeacherDetailsPage(this._teacher, this.heroTag, isFromFavorisPage: this.isFavoriteCard, favoriteId: this.favoriteId,))
                 );
               },
               margin: EdgeInsets.only(left: 25.0, right: 25.0, top: 10.0),
@@ -635,10 +927,10 @@ Future<bool> demandeConfirmation(BuildContext context, String question, {IconDat
         shrinkWrap: true,
         primary: false,
         children: <Widget>[
-          SizedBox(height: 40.0),
-          icon!=null?Center(child:Icon(icon, color: mainColor, size: 40,)):Container(),
           SizedBox(height: 20.0),
-          CustomText(question, darkColor, 4, textAlign: TextAlign.center, padding: 0,),
+          icon!=null?Center(child:Icon(icon, color: mainColor, size: 30,)):Container(),
+          SizedBox(height: 10.0),
+          CustomText(question, darkColor, 5, textAlign: TextAlign.center, padding: 0,),
           ButtonBar(
             children: <Widget>[
               FlatButton(
@@ -668,6 +960,7 @@ Future<bool> demandeConfirmation(BuildContext context, String question, {IconDat
 
 
 showNotification(String message, ScaffoldState scaffold){
+  if(message==null || message=="") message = "Désolé, une erreur s'est produite !";
   scaffold.showSnackBar(
     SnackBar(
       backgroundColor: mainHighlightColor,
@@ -679,20 +972,27 @@ showNotification(String message, ScaffoldState scaffold){
 
 
 class NoteTeacherWidget extends StatefulWidget {
+  int note;
+  NoteTeacherWidget(this.note);
   @override
-  _NoteTeacherWidgetState createState() => _NoteTeacherWidgetState();
+  _NoteTeacherWidgetState createState() => _NoteTeacherWidgetState(this.note);
 }
 
 class _NoteTeacherWidgetState extends State<NoteTeacherWidget> {
-  int note=0, maxNote=5;
+  int note;
+  _NoteTeacherWidgetState(note){
+    if(note==null) this.note = 0;
+    else this.note = note;
+  }
+
   @override
   Widget build(BuildContext context) {
     List <Widget> liste = List();
-    for(int i=1; i<=maxNote; i++)
+    for(int i=1; i <= maxMark; i++)
       liste.add(
         IconButton(
           padding: const EdgeInsets.all(2),
-          icon: Icon(i<=note?Icons.star:Icons.star_border, color: mainColor,),
+          icon: Icon((i<=note) ? Icons.star : Icons.star_border, color: mainColor,),
           iconSize: 30,
           onPressed: ()=>setState(()=>note=i),
         )
@@ -702,14 +1002,14 @@ class _NoteTeacherWidgetState extends State<NoteTeacherWidget> {
       padding: EdgeInsets.only(top:25, left: 10, right: 10, bottom: 0),
       child: Column(
         children: <Widget>[
-          CustomText("$note/$maxNote", mainColor, 4),
+          CustomText("$note/$maxMark", mainColor, 4),
           Row(children: liste,mainAxisAlignment: MainAxisAlignment.center,),
           ButtonBar(
             alignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               FlatButton(
                 child: CustomText("Annuler", greyColor, 5),
-                onPressed: ()=>Navigator.of(context).pop(0),
+                onPressed: ()=>Navigator.of(context).pop(),
                 splashColor: mainColor,
               ),
               FlatButton(
@@ -723,4 +1023,41 @@ class _NoteTeacherWidgetState extends State<NoteTeacherWidget> {
       ),
     );
   }
+}
+
+Widget errorWidget(RequestType reponse){
+  IconData icon;
+  switch (reponse.geterreurType) {
+    case ErreurType.internet: icon = Icons.signal_wifi_off;
+      break;
+    case ErreurType.unauthorized: icon = Icons.lock_outline;
+      break;
+    case ErreurType.undefined: icon = Icons.sentiment_dissatisfied;
+      break;
+  }
+  return Center(
+      child: Column(
+        children: <Widget>[
+          Icon(icon, color: mainColor, size: 60,),
+          CustomText(reponse.geterrorMessage, greyColor, 4, textAlign: TextAlign.center,)
+        ],
+      ),
+    );
+}
+
+Widget notFoundWidget(String message1, String message2){
+  return Column(
+    children: <Widget>[
+      Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(image: AssetImage("images/coffre-fort.png")),
+        ),
+        width: 150,
+        height: 150,
+        margin: const EdgeInsets.only(top: 20, bottom: 30),
+      ),
+      CustomText(message1, darkColor, 2, bold: true, padding: 5, textAlign: TextAlign.center,),
+      CustomText(message2, greyColor, 4, textAlign: TextAlign.center,),
+    ],
+  );
 }

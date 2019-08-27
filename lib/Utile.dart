@@ -19,9 +19,10 @@ const double size3 = 20.0;
 const double size4 = 16.0;
 const double size5 = 13.0;
 const double size6 = 10.0;
+const int maxMark = 5;
 
 
-const  List<String> districtList = ["Toute la ville", "Pissy", "Goughin", "Karpala", "Ouaga 2000"];
+/*const  List<String> quarterList = ["Toute la ville", "Pissy", "Goughin", "Karpala", "Ouaga 2000"];
 const  List<String> subjectList = ["Mathématiques", "Physique", "Informatique", "Econnomie", "Comptabbilité"];
 const List<String> levelList = ["6 ème", "5 ème", "4 ème", "1 ère", "Tle"];
 const List<String> countryList = ["Burkina Faso", "Maroc", "Sénégal"];
@@ -37,10 +38,10 @@ String getIndicatif(String country){
       break;
   }
   return indicatif;
-}
+}*/
 
 
-
+/*
 class User{
   static int _count = 0;
   String firstname, lastname, mail, phoneNumber, adress, country, profilePicture;
@@ -51,8 +52,8 @@ class User{
 }
 var currentUser;
 class Student extends User{
-  String district, level, school;
-  Student(firstname, lastname, { adress, mail, phoneNumber, profilePicture="", this.district, this.level, country, this.school})
+  String quarter, level, school;
+  Student(firstname, lastname, { adress, mail, phoneNumber, profilePicture="", this.quarter, this.level, country, this.school})
   : super(firstname, lastname, adress: adress, mail: mail, phoneNumber: phoneNumber, country: country, profilePicture: profilePicture);
 }
 
@@ -63,7 +64,7 @@ List<Student> students = [
   mail: "student@home-teacher.africa", 
   phoneNumber: "+22670116531", 
   level: "4 ème",
-  district: "Karpala",
+  quarter: "Karpala",
   school: "St JB de la Salle",
 )];
 
@@ -71,8 +72,8 @@ class Teacher extends User{
   String job, description, education;
   int mark, numberOfVotes;
   bool isChecked;
-  List<String> levelTeached, districtTeached, subjectTeached;
-  Teacher(firstname, lastname, this.job, this.description, this.mark, this.isChecked, {profilePicture="", this.numberOfVotes, adress, this.education, mail, phoneNumber, this.districtTeached, this.levelTeached, country, this.subjectTeached})
+  List<String> levelTeached, quarterTeached, subjectTeached;
+  Teacher(firstname, lastname, this.job, this.description, this.mark, this.isChecked, {profilePicture="", this.numberOfVotes, adress, this.education, mail, phoneNumber, this.quarterTeached, this.levelTeached, country, this.subjectTeached})
   : super(firstname, lastname, adress: adress, mail: mail, phoneNumber: phoneNumber, country: country, profilePicture: profilePicture);
 }
 
@@ -84,7 +85,7 @@ List<Teacher> teachers = [
   mail: "kere@home-teacher.africa", 
   phoneNumber: "+22670116531", 
   levelTeached: levelList,
-  districtTeached: districtList,
+  quarterTeached: quarterList,
   country: "Burkina Faso",
   profilePicture: "https://z-p3-scontent-lhr3-1.xx.fbcdn.net/v/t1.0-9/46196161_2596330053740716_3145883108448927744_n.jpg?_nc_cat=104&_nc_eui2=AeHJdxGs4eGIJ0oimfpPV72Bknh6KowJpzMm4RFP-ad6fdJVDz5cORXVce108asyCO5BzoXordlDqXxoGIDnNB5SzXgXfASWMRAgeL4uzAEu0A&_nc_oc=AQncd1ezRUsE1fPb_QXMo40-jGw_MTlcLCKkNRbG8SmV8VdZ4-x3F8RR86Mr611n2M4&_nc_ht=z-p3-scontent-lhr3-1.xx&oh=dedca98a9cdb0577ac4f6d32ff7192b2&oe=5DEB8167",
   subjectTeached: subjectList),
@@ -95,7 +96,7 @@ List<Teacher> teachers = [
   mail: "josias@home-teacher.africa", 
   phoneNumber: "+22670116531", 
   levelTeached: levelList,
-  districtTeached: districtList,
+  quarterTeached: quarterList,
   country: "Burkina Faso",
   profilePicture: "https://z-p3-scontent-lhr3-1.xx.fbcdn.net/v/t1.0-9/18739928_784019038428140_3166742850023384587_n.jpg?_nc_cat=100&_nc_eui2=AeEpPmKO--PzkLFVg2KDLXILXdmknAGx1-plhb36bOYlsltI6tIgqWVaN-m_6OA-O37gCeGmmjV16_erjjrioZf1HtYlY0oywKv2WnPfBPeZzQ&_nc_oc=AQl33xTGDJzgEsd4pdYR9rLmmw2Pvbg4o-MwkplaDIsLiLb8hq54Ya1MdsEovKZQP48&_nc_ht=z-p3-scontent-lhr3-1.xx&oh=7c30382a8d8ff56cfac29a4e921a4c3b&oe=5DDE3BC4",
   subjectTeached: subjectList),
@@ -106,7 +107,7 @@ List<Teacher> teachers = [
   mail: "abdoul@home-teacher.africa", 
   phoneNumber: "+22670116531", 
   levelTeached: levelList,
-  districtTeached: districtList,
+  quarterTeached: quarterList,
   country: "Burkina Faso",
   profilePicture: "https://z-p3-scontent-lhr3-1.xx.fbcdn.net/v/t1.0-9/65393177_1251633361696661_6075777993823748096_n.jpg?_nc_cat=101&_nc_eui2=AeHe1Cu5AgY56GGCNB4-Mr7Mzwpe0vn1ByOCVhRxoOv8-MAtUG8I2G3_GbNqFi5HNqDgoC4x1AfQWkIc8yvdMbH4K9_Kds1IomgPpjb9fO2FTg&_nc_oc=AQlx5iiv28o0qvMOBci6uE98O8r_TWGEjkLWQcOm03s1RIwv_MUKqbUdnnJVzjAC66g&_nc_ht=z-p3-scontent-lhr3-1.xx&oh=c0b1b19f1205800c9c6158840e61ff80&oe=5DD6FC96",
   subjectTeached: subjectList),
@@ -117,7 +118,7 @@ List<Teacher> teachers = [
   mail: "kere@home-teacher.africa", 
   phoneNumber: "+22670116531", 
   levelTeached: levelList,
-  districtTeached: districtList,
+  quarterTeached: quarterList,
   country: "Burkina Faso",
   profilePicture: "https://z-p3-scontent-lhr3-1.xx.fbcdn.net/v/t1.0-9/46196161_2596330053740716_3145883108448927744_n.jpg?_nc_cat=104&_nc_eui2=AeHJdxGs4eGIJ0oimfpPV72Bknh6KowJpzMm4RFP-ad6fdJVDz5cORXVce108asyCO5BzoXordlDqXxoGIDnNB5SzXgXfASWMRAgeL4uzAEu0A&_nc_oc=AQncd1ezRUsE1fPb_QXMo40-jGw_MTlcLCKkNRbG8SmV8VdZ4-x3F8RR86Mr611n2M4&_nc_ht=z-p3-scontent-lhr3-1.xx&oh=dedca98a9cdb0577ac4f6d32ff7192b2&oe=5DEB8167",
   subjectTeached: subjectList),
@@ -128,7 +129,7 @@ List<Teacher> teachers = [
   mail: "aubin@home-teacher.africa", 
   phoneNumber: "+22670116531", 
   levelTeached: levelList,
-  districtTeached: districtList,
+  quarterTeached: quarterList,
   country: "Burkina Faso",
   profilePicture: "https://z-p3-scontent-lhr3-1.xx.fbcdn.net/v/t1.0-9/38494113_2185407888354669_3479345245483696128_n.jpg?_nc_cat=101&_nc_eui2=AeHt184Dt8Len1jDDf1YIlLhtmD1HNcSphU36MzlMyjPUjqU_bYBQy7_YaOoVc3NfOnL7tso6FwfuANgIyUjQ8bx2i8FMBLNH9NqLBOvz4Ab5g&_nc_oc=AQnDf0Nmgv212_O9yR4ZaNecgXmWnJDeDytmg4I_C0t-wzf5vN4jmqgPRiYQWgWsGIY&_nc_ht=z-p3-scontent-lhr3-1.xx&oh=49f574a1ddb4d034ef8b12a7ea36f4cf&oe=5DDC83CA",
   subjectTeached: subjectList),
@@ -139,7 +140,7 @@ List<Teacher> teachers = [
   mail: "kere@home-teacher.africa", 
   phoneNumber: "+22670116531", 
   levelTeached: levelList,
-  districtTeached: districtList,
+  quarterTeached: quarterList,
   country: "Burkina Faso",
   profilePicture: "https://z-p3-scontent-lhr3-1.xx.fbcdn.net/v/t1.0-9/46196161_2596330053740716_3145883108448927744_n.jpg?_nc_cat=104&_nc_eui2=AeHJdxGs4eGIJ0oimfpPV72Bknh6KowJpzMm4RFP-ad6fdJVDz5cORXVce108asyCO5BzoXordlDqXxoGIDnNB5SzXgXfASWMRAgeL4uzAEu0A&_nc_oc=AQncd1ezRUsE1fPb_QXMo40-jGw_MTlcLCKkNRbG8SmV8VdZ4-x3F8RR86Mr611n2M4&_nc_ht=z-p3-scontent-lhr3-1.xx&oh=dedca98a9cdb0577ac4f6d32ff7192b2&oe=5DEB8167",
   subjectTeached: subjectList),
@@ -150,7 +151,7 @@ List<Teacher> teachers = [
   mail: "kere@home-teacher.africa", 
   phoneNumber: "+22670116531", 
   levelTeached: levelList,
-  districtTeached: districtList,
+  quarterTeached: quarterList,
   country: "Burkina Faso",
   profilePicture: "https://z-p3-scontent-lhr3-1.xx.fbcdn.net/v/t1.0-9/46196161_2596330053740716_3145883108448927744_n.jpg?_nc_cat=104&_nc_eui2=AeHJdxGs4eGIJ0oimfpPV72Bknh6KowJpzMm4RFP-ad6fdJVDz5cORXVce108asyCO5BzoXordlDqXxoGIDnNB5SzXgXfASWMRAgeL4uzAEu0A&_nc_oc=AQncd1ezRUsE1fPb_QXMo40-jGw_MTlcLCKkNRbG8SmV8VdZ4-x3F8RR86Mr611n2M4&_nc_ht=z-p3-scontent-lhr3-1.xx&oh=dedca98a9cdb0577ac4f6d32ff7192b2&oe=5DEB8167",
   subjectTeached: subjectList),
@@ -161,7 +162,7 @@ List<Teacher> teachers = [
  Future<bool> checkConnection() async {
   bool reponse = false;
   try {
-    final result = await InternetAddress.lookup('google.com').timeout(Duration(seconds: 5));
+    final result = await InternetAddress.lookup('google.com').timeout(Duration(seconds: 10));
     if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
       print('connected');
       reponse = true;
@@ -173,4 +174,4 @@ List<Teacher> teachers = [
     print('bad connection');
   }
   return reponse;
-}
+ }*/
