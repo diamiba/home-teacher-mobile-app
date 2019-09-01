@@ -82,7 +82,7 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
                         ),
                         onTap: (){
                           Navigator.push(context,
-                            MaterialPageRoute(builder: (context)=> ShowPhoto(image: this.image, id: this._teacher.id,))
+                            MaterialPageRoute(builder: (context)=> ShowPhoto(image: this.image, heroTag: this._heroTag,))
                           );
                         }
                       ),

@@ -210,6 +210,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   _updateInfos() async {
     print("update Infos");
+    FocusScope.of(context).requestFocus(FocusNode());
     setState(()=>_erreurTextInfos = "");
     if (!_formKeyUpdateInfos.currentState.validate()) return;
     if (lastnameController.text==user.lastname && firstnameController.text==user.firstname && phoneNumberController.text==user.phoneNumber && 
@@ -238,6 +239,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   _updatePassword() async {
     print("_saveInfos");
+    FocusScope.of(context).requestFocus(FocusNode());
     setState(()=>_erreurTextPassword = "");
     if (!_formKeyUpdatePassword.currentState.validate()) return;
     setState(() => _isLoading = true);
@@ -286,40 +288,37 @@ class _ProfilPictureState extends State<ProfilPicture> {
       child: Column(
         children: <Widget>[
           Hero(
-            tag: this.widget.user.id,
+            tag: this.widget.user.id.toString(),
             transitionOnUserGestures: true,
             child: Stack(
               alignment: Alignment.center,
               children: <Widget>[
                 GestureDetector(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(20)),
-                    child: CachedNetworkImage(
-                      imageUrl: this.user.profilePicture!=null?this.user.profilePicture:"https://back-end.diamiba.com/storage/default.png",
-                      imageBuilder: (context, imageProvider){
-                        this.image = (this._image==null)?Image(image: imageProvider, fit: BoxFit.contain):
-                        Image.file(this._image, fit: BoxFit.contain);
-                        return (this._image==null)?Image(image: imageProvider):Image.file(this._image);
-                      },
-                      placeholder: (context, url) => Container(
-                        height: 150,
-                        width: 150,
-                        padding: EdgeInsets.all(60),
-                        child: CircularProgressIndicator(
-                          backgroundColor: mainLightColor,
-                        ),
+                  child: CachedNetworkImage(
+                    imageUrl: this.user.profilePicture!=null?this.user.profilePicture:"https://back-end.diamiba.com/storage/default.png",
+                    imageBuilder: (context, imageProvider){
+                      this.image = (this._image==null)?Image(image: imageProvider, fit: BoxFit.contain):
+                      Image.file(this._image, fit: BoxFit.contain);
+                      return ClipRRect(child: (this._image==null)?Image(image: imageProvider):Image.file(this._image), borderRadius: BorderRadius.all(Radius.circular(20)),);
+                    },
+                    placeholder: (context, url) => Container(
+                      height: 150,
+                      width: 150,
+                      padding: EdgeInsets.all(60),
+                      child: CircularProgressIndicator(
+                        backgroundColor: mainLightColor,
                       ),
-                      errorWidget: (context, url, error){
-                        this.image = (this._image==null)? Image.asset("images/profil_picture.png", fit: BoxFit.contain):
-                        Image.file(this._image, fit: BoxFit.contain);
-                        print(error);
-                        return (this._image==null)?Image.asset("images/profil_picture.png", width: 150,):Image.file(this._image, width: 150,);
-                      } 
                     ),
+                    errorWidget: (context, url, error){
+                      this.image = (this._image==null)? Image.asset("images/profil_picture.png", fit: BoxFit.contain):
+                      Image.file(this._image, fit: BoxFit.contain);
+                      print(error);
+                      return ClipRRect(child: (this._image==null) ? Image.asset("images/profil_picture.png", width: 150,) : Image.file(this._image, width: 150,), borderRadius: BorderRadius.all(Radius.circular(20)),);
+                    } 
                   ),
                   onTap: (){
                     Navigator.push(context,
-                      MaterialPageRoute(builder: (context)=> ShowPhoto(image: this.image, id: this.user.id,))
+                      MaterialPageRoute(builder: (context)=> ShowPhoto(image: this.image, heroTag: this.user.id.toString(),))
                     );
                   }
                 ),
@@ -343,6 +342,7 @@ class _ProfilPictureState extends State<ProfilPicture> {
 
 
   _changePhoto() async {
+    FocusScope.of(context).requestFocus(FocusNode());
     showDialog<int>(
       context: context,
       builder: (BuildContext context)=>SimpleDialog(

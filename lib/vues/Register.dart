@@ -220,9 +220,10 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   _register() async {
+    FocusScope.of(context).requestFocus(FocusNode());
     print("inscrire");
     setState(() => _erreurText = "");
-    //if (!_formKeyRegister.currentState.validate()) return;
+    if (!_formKeyRegister.currentState.validate()) return;
     setState(() => _isLoading = true);
     bool haveInternet = await serv.checkConnection();
     if(!haveInternet){
@@ -234,7 +235,7 @@ class _RegisterPageState extends State<RegisterPage> {
       "mail: ${emailController.text} | phoneNumber: ${phoneNumberController.text} | adress: ${adressController.text} "
       "| country: $selectedCountry | password: ${passwordController.text}");*/
 
-    /*var reponse = await serv.register(
+    var reponse = await serv.register(
       isStudent: !_isTeacher,
       lastName: lastnameController.text,
       firstName: firstnameController.text,
@@ -243,9 +244,9 @@ class _RegisterPageState extends State<RegisterPage> {
       fullAdress: adressController.text,
       countryName: AllCountries.getCountryCode(selectedCountry),
       password: passwordController.text,
-    );*/
+    );
 
-    var reponse = await serv.register(isStudent:false, firstName:"daren", lastName:"tullet",email:"rasilodo@smart-mail.top", phoneNumber:"12121212", fullAdress:"pissy", password:"11111111", countryName:"BF");
+    //var reponse = await serv.register(isStudent:false, firstName:"daren", lastName:"tullet",email:"rasilodo@smart-mail.top", phoneNumber:"12121212", fullAdress:"pissy", password:"11111111", countryName:"BF");
     if(reponse.getisSuccess)
       setState((){
         _isLoading = false;

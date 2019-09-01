@@ -459,7 +459,7 @@ class _MyDrawerState extends State<MyDrawer>  with SingleTickerProviderStateMixi
     liste.add(
       Container(
         width: 30,
-        height: 40,
+        height: 25,
         decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage("images/logo_white.png"),
@@ -525,6 +525,7 @@ class _MyDrawerState extends State<MyDrawer>  with SingleTickerProviderStateMixi
 
               currentUser = null;
               currentToken = null;
+              RequestType.numberOfUnauthorized = 0;
             }
             setState(() => isLoading = false );
           }
@@ -617,7 +618,7 @@ class _CustomBodyState extends State<CustomBody>  with TickerProviderStateMixin 
               children: <Widget>[
                 this.widget.isConnected?Container(
                   width: 80,
-                  height: 35,
+                  height: 25,
                   margin: EdgeInsets.only(left: 25.0),
                   decoration: BoxDecoration(
                     image: DecorationImage(
@@ -668,7 +669,7 @@ class _CustomBodyState extends State<CustomBody>  with TickerProviderStateMixin 
           children: <Widget>[
             this.widget.isConnected?Container(
               width: 80,
-              height: 35,
+              height: 25,
               margin: EdgeInsets.only(left: 25.0),
               decoration: BoxDecoration(
                 image: DecorationImage(
@@ -811,7 +812,7 @@ class TeacherCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double phoneWidth = MediaQuery.of(context).size.width;
-    String description = this._teacher.description.length<140?this._teacher.description:this._teacher.description.substring(0,139)+"...";
+    String description = (this._teacher.description != null) ? (this._teacher.description.length<140 ? this._teacher.description : this._teacher.description.substring(0,139)+"...") : "";
     return Container(
       padding: EdgeInsets.symmetric(vertical: 10,),
       width: phoneWidth<400?320:350,

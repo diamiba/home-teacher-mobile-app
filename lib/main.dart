@@ -104,7 +104,10 @@ class _StartingPageState extends State<StartingPage> {
         if(reponse.getisSuccess){
           getCities();
           currentUser = reponse.getdata;
-          Navigator.pushReplacementNamed(context, Vues.home);
+          if(SearchOptions.isLoaded)
+            Navigator.pushReplacementNamed(context, Vues.home);
+          else
+            Navigator.pushReplacementNamed(context, Vues.login);
         }
         else{
           Navigator.pushReplacementNamed(context, Vues.login);
@@ -116,7 +119,10 @@ class _StartingPageState extends State<StartingPage> {
           var options = await searchOptionsWithToken(currentToken);
           if(options != null){
             SearchOptions(options);
-            Navigator.pushReplacementNamed(context, Vues.home);
+            if(SearchOptions.isLoaded)
+              Navigator.pushReplacementNamed(context, Vues.home);
+            else
+              Navigator.pushReplacementNamed(context, Vues.login);
           }
           else
             Navigator.pushReplacementNamed(context, Vues.login);

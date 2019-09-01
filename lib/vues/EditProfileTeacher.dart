@@ -115,6 +115,7 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
 
   _update() async {
     print("update teacher infos");
+    FocusScope.of(context).requestFocus(FocusNode());
     setState(()=>_erreurText = "");
     if (!_formKeyUpdate.currentState.validate()) return;
 
@@ -132,7 +133,7 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
       setState(() => _isLoading = true);
       Map<String,dynamic> body = {
         'TeachedLevel': levelTeached,
-        'TeacherQuarter': quarterTeached,
+        'TeachedQuarter': quarterTeached,
         'TeachedSubject': subjectTeached,
         'StudiesDomain': education.text,
         'CurrentJob': job.text,

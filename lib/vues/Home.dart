@@ -25,9 +25,9 @@ class _HomePageState extends State<HomePage> {
   double lastScrollControlerPosition, phoneWidth, height;
 
   _HomePageState(){
-    selectedQuarter = SearchOptions.quarterList[0];
-    selectedSubject = SearchOptions.subjectList[0];
-    selectedLevel = SearchOptions.levelList[0];
+    selectedQuarter = (SearchOptions.quarterList != null && SearchOptions.quarterList.isNotEmpty) ? SearchOptions.quarterList[0] : "Aucun quartier disponible" ;
+    selectedSubject = (SearchOptions.subjectList != null  && SearchOptions.subjectList.isNotEmpty) ? SearchOptions.subjectList[0] : "Aucune matière disponible" ;
+    selectedLevel = (SearchOptions.levelList != null  && SearchOptions.levelList.isNotEmpty) ? SearchOptions.levelList[0] : "Aucune classe disponible" ;
     resultWidget = SliverToBoxAdapter(child: Center(child: CustomText("Recherche en cours ...", darkColor, 3, bold: true, textAlign: TextAlign.center,),));
     suggestionsWidget = SliverToBoxAdapter(child: Container());
   }
@@ -55,7 +55,6 @@ class _HomePageState extends State<HomePage> {
         this.isHeaderShown = true;
       }
     }
-
     lastScrollControlerPosition = myScrollController.offset;
   }
 
@@ -118,11 +117,15 @@ class _HomePageState extends State<HomePage> {
                 curve: Curves.easeInOutCirc,
                 margin: EdgeInsets.symmetric(horizontal: searched?45.0:0),
                 color: mainColor,
-                child: CustomButton("CHERCHER !", mainColor, 
-                  () async {
-                    print('CHERCHER !');
-                    await resultCard();
-                  },
+                //color: SearchOptions.isEmpty ? greyColor : mainColor,
+                child: CustomButton("CHERCHER !",
+                  mainColor,
+                  SearchOptions.isEmpty
+                    ? null
+                    : () async {
+                        print('CHERCHER !');
+                        await resultCard();
+                      },
                   shadow: false,
                 ),
               ),
@@ -168,12 +171,6 @@ class _HomePageState extends State<HomePage> {
                 physics: BouncingScrollPhysics(),
                 controller: myScrollController,
                 slivers: <Widget>[
-                  /*SliverAppBar(
-                    automaticallyImplyLeading: false,
-                    actions: <Widget>[Container()],
-                    floating: true,
-                    title: ,
-                  ),*/
                   SliverToBoxAdapter(child: SizedBox(height: 40,),),
                   resultWidget,
                   suggestionsWidget,
@@ -193,29 +190,43 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget choiceElement(List<String> liste, String value, Function fonction, {bool isLast = false}) {
-    final List<DropdownMenuItem<String>> items = liste.map(
-      (String val) =>
-          DropdownMenuItem<String>(
-            value: val, 
-            child: CustomText(val, darkColor, 4, padding: 0,),
-        )).toList();
-    return Card(
-      elevation: 0,
-      child: DropdownButton<String>(
-        style: TextStyle(fontSize: size4, color: darkColor),
-        icon: Icon(
-          Icons.arrow_drop_down,
-          color: greyColor,
+    if(liste != null && liste.isNotEmpty){
+      final List<DropdownMenuItem<String>> items = liste.map(
+        (String val) =>
+            DropdownMenuItem<String>(
+              value: val, 
+              child: CustomText(val, darkColor, 4, padding: 0,),
+          )).toList();
+      return Card(
+        elevation: 0,
+        child: DropdownButton<String>(
+          style: TextStyle(fontSize: size4, color: darkColor),
+          icon: Icon(
+            Icons.arrow_drop_down,
+            color: greyColor,
+          ),
+          iconSize: 30,
+          isExpanded: true,
+          isDense: true,
+          value:value,
+          items: items,
+          onChanged: (String selection) {fonction(selection);},
+          underline: !isLast?Divider(height: 0.2, color: greyColor,):Container(),
         ),
-        iconSize: 30,
-        isExpanded: true,
-        isDense: true,
-        value:value,
-        items: items,
-        onChanged: (String selection) {fonction(selection);},
-        underline: !isLast?Divider(height: 0.2, color: greyColor,):Container(),
-      ),
-    );
+      );
+    }
+    else{
+      return Card(
+        elevation: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            CustomText(value, darkColor, 4, textAlign: TextAlign.start,),
+            !isLast?Divider(height: 0.2, color: greyColor,):Container(),
+          ],
+        ),
+      );
+    }
   }
 
   Future resultCard({bool refresh = false}) async {

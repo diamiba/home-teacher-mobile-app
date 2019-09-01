@@ -29,26 +29,28 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    if(this.widget.isExpired)
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await showDialog<String>(
-          context: context,
-          builder: (BuildContext context) => new AlertDialog(
-                title: Icon(Icons.lock_outline, color: mainColor, size: 40,),
-                content: CustomText("Votre session a expiré, veuillez vous identifier à nouveau", greyColor, 5, textAlign: TextAlign.center,),
-                actions: <Widget>[
-                  new FlatButton(
-                    child: new Text("OK"),
-                    textColor: mainColor,
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              ),
-          );
-        }
-      );
+    if(this.widget.isExpired){
+        this.widget.isExpired = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          await showDialog<String>(
+            context: context,
+            builder: (BuildContext context) => new AlertDialog(
+                  title: Icon(Icons.lock_outline, color: mainColor, size: 40,),
+                  content: CustomText("Votre session a expiré, veuillez vous identifier à nouveau", greyColor, 5, textAlign: TextAlign.center,),
+                  actions: <Widget>[
+                    new FlatButton(
+                      child: new Text("OK"),
+                      textColor: mainColor,
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                ),
+            );
+          }
+        );
+    }
   }
 
 
@@ -141,6 +143,7 @@ class _LoginPageState extends State<LoginPage> {
 
   _login() async {
     print("connecter");
+    FocusScope.of(context).requestFocus(FocusNode());
     setState(()=>_erreurText = "");
     if (!_formKeyLogin.currentState.validate()) return;
     setState(()=> _isLoading = true);
@@ -155,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
     }
     var reponse = await serv.login(emailController.text, passwordController.text);
     //var reponse = await serv.login("vlord368@gmail.com", "11111111");
-    if(reponse.getisSuccess){
+    if(reponse.getisSuccess && SearchOptions.isLoaded){
       currentUser = reponse.data;
       setState(() => _isLoading = false);
       Navigator.of(context).pushReplacementNamed(Vues.home);

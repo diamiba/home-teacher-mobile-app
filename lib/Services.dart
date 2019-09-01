@@ -111,10 +111,11 @@ class RequestType{
           }
           while(Navigator.of(currentScaffoldState.currentContext).canPop())
             Navigator.of(currentScaffoldState.currentContext).pop();
-        Navigator.pushReplacement(currentScaffoldState.currentContext, MaterialPageRoute(builder: (context)=> LoginPage(isExpired: true,)));
+          Navigator.pushReplacement(currentScaffoldState.currentContext, MaterialPageRoute(builder: (context)=> LoginPage(isExpired: true,)));
           
           currentUser = null;
           currentToken = null;
+          RequestType.numberOfUnauthorized = 0;
         }
         return RequestType.echec(ErreurType.unauthorized);
       }
@@ -190,6 +191,7 @@ Future<RequestType> login(String email, String password) async{
         );
       },
       nom: "login",
+      duration: 30,
     );
     if(reponse.getisSuccess){
       String token = reponse.getdata["data"]["token"];
@@ -243,6 +245,18 @@ updateUserInfoInStorage() async {
     client.close();
   }
 }
+updateSearchOptionsInStorage() async {
+  print("updateSearchOptionsInStorage");
+  var client = new http.Client();
+  try {
+    await storage.delete(key: "searchOptions");
+    var options = await searchOptions(currentToken, client: client);
+    SearchOptions(options);
+    client.close();
+  } catch (e) {
+    client.close();
+  }
+}
 
 Future currentUserSpecialInfos(String token, {var client, bool isStudent}) async{
   final RequestType reponse = await RequestType.makeRequest(
@@ -268,11 +282,11 @@ Future<RequestType> updateCurrentUserSpecialInfos(Map<String,dynamic> body, {boo
   if(!isStudent){
     Map<String,dynamic> boddy = {
       'TeachedLevel': json.encode(List<String>.from(body["TeachedLevel"])),
-      'TeacherQuarter': json.encode(List<String>.from(body["TeacherQuarter"])),
+      'TeachedQuarter': json.encode(List<String>.from(body["TeachedQuarter"])),
       'TeachedSubject': json.encode(List<String>.from(body["TeachedSubject"])),
       'StudiesDomain': body["StudiesDomain"],
       'CurrentJob': body["CurrentJob"],
-      'LilResume': body["LilResume"],
+      'lilResume': body["LilResume"],
     };
     /*body["TeachedLevel"] = json.encode(body["TeachedLevel"]);
     body["TeacherQuarter"] = json.encode(body["TeacherQuarter"]);
@@ -346,11 +360,12 @@ Future<RequestType> updateUserDetails(String firstName, String lastName, String 
   if(reponse.getisSuccess){
     reponse.setdata = reponse.getdata["data"];
     updateUserInfoInStorage();
+    if(city != currentUser.city) updateSearchOptionsInStorage();
+
   }
   return reponse;
 }
 
-//////////// TO TEST
 Future<RequestType> changeUserPicture(File _image) async{
   print("changeUserPicture");
   try {
@@ -679,13 +694,11 @@ Future<RequestType> logout() async{
       nom: "logout",
       duration: 30,
     );
-    client.close();
     if(reponse.getisSuccess){
       reponse.setdata = reponse.getdata["message"];
     }
     return reponse;
   } catch (e) {
-    client.close();
     print(e);
     return RequestType.echec(ErreurType.undefined);
   }

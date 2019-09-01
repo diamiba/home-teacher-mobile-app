@@ -89,6 +89,7 @@ class _EditProfileStudentPageState extends State<EditProfileStudentPage> {
 
   _update() async {
     print("update student infos");
+    FocusScope.of(context).requestFocus(FocusNode());
     setState(()=>_erreurText = "");
     if (!_formKeyUpdate.currentState.validate()) return;
 

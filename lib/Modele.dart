@@ -57,6 +57,7 @@ readUserTokenInfo() async {
   try {
     String searchOptions = await storage.read(key: "searchOptions");
     Map<String, dynamic> options = json.decode(searchOptions);
+    print(options.values);
     SearchOptions(options);
   } catch (e) {}
 }
@@ -206,8 +207,8 @@ List<Teacher> teachersFromList(List data) {
   return new List<Teacher>.from(data.map((x) => Teacher.fromMap(x)));
 }
 
-class SearchOptions{
-  static bool isLoaded = false;
+class SearchOptions{// isEmpty est true lorsque aumoins une des liste est null ou vide
+  static bool isLoaded = false, isEmpty = true;
   static List<String> quarterList;
   static List<String> levelList;
   static List<String> subjectList;
@@ -215,6 +216,11 @@ class SearchOptions{
     quarterList = List.castFrom<dynamic, String>(data["quarters"]);
     levelList = List.castFrom<dynamic, String>(data["levels"]);
     subjectList = List.castFrom<dynamic, String>(data["subjects"]);
+    print("quarter $quarterList");
+    print("level $levelList");
+    print("subject $subjectList");
+    if(quarterList != null && quarterList.isNotEmpty && levelList != null && levelList.isNotEmpty && subjectList != null && subjectList.isNotEmpty)
+      isEmpty = false;
     isLoaded = true;
   }
 }

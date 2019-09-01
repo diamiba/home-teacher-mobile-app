@@ -4,10 +4,10 @@ import 'package:home_teacher/Utile.dart';
 
 const double _kMinFlingVelocity = 800.0;
 class ShowPhoto extends StatefulWidget {
-  const ShowPhoto({ Key key, this.image,  this.id }) : super(key: key);
+  const ShowPhoto({ Key key, this.image, this.heroTag}) : super(key: key);
 
   final Image image;
-  final int id;
+  final String heroTag;
 
   @override
   _ShowPhotoState createState() => _ShowPhotoState();
@@ -106,7 +106,7 @@ class _ShowPhotoState extends State<ShowPhoto> with SingleTickerProviderStateMix
                 ..translate(_offset.dx, _offset.dy)
                 ..scale(_scale),
               child: Hero(
-                tag: this.widget.id,
+                tag: this.widget.heroTag,
                 transitionOnUserGestures: true,
                 child: Container(
                   child: this.widget.image, 
