@@ -13,14 +13,13 @@ class ExplorerPage extends StatefulWidget {
 
 class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderStateMixin {
   bool isMostRecent = true, isHeaderShown = true, isHeaderButtonShown = true;
-  ScrollController mainScrollController;
-  ScrollController myScrollController;
+  ScrollController mainScrollController, myScrollController;
   TabController tabController;
   double lastScrollControlerPosition, phoneWidth;
   var latestTearchers, mostRatedTeachers;
 
   void initState() {
-    tabController = TabController(length: 2, vsync: this);
+    tabController = TabController(initialIndex: 1, length: 2, vsync: this);
     mainScrollController = ScrollController();
     myScrollController = ScrollController();
     myScrollController.addListener(_scrollListener);
@@ -31,11 +30,15 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
   _scrollListener() {
     //print("${myScrollController.offset} - $lastScrollControlerPosition  -  ${myScrollController.initialScrollOffset}");
     if(mainScrollController.offset != mainScrollController.position.maxScrollExtent) this.isHeaderShown = true;
-    if(myScrollController.offset>lastScrollControlerPosition && this.isHeaderShown){ //move down
-      mainScrollController.jumpTo(mainScrollController.position.maxScrollExtent);
-      this.isHeaderShown = false;
+    if(myScrollController.offset>lastScrollControlerPosition){ //move down
+      if(this.isHeaderShown){
+        mainScrollController.jumpTo(mainScrollController.position.maxScrollExtent);
+        this.isHeaderShown = false;
+      }
+      if(isHeaderButtonShown)
+        setState(() => isHeaderButtonShown = false);
     }
-    else if(myScrollController.offset<lastScrollControlerPosition || lastScrollControlerPosition<0){ //move up
+    else if(myScrollController.offset<=lastScrollControlerPosition || lastScrollControlerPosition<0){ //move up
       if(myScrollController.offset == myScrollController.initialScrollOffset && !this.isHeaderShown){
         mainScrollController.animateTo(
           mainScrollController.position.minScrollExtent,
@@ -43,6 +46,8 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
         );
         this.isHeaderShown = true;
       }
+      if(!isHeaderButtonShown)
+        setState(() => isHeaderButtonShown = true);
     }
 
     lastScrollControlerPosition = myScrollController.offset;
@@ -89,69 +94,26 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
           ),
         ),
         SliverToBoxAdapter(
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height-kToolbarHeight,
-            color: lightGreyColor,
-            child: Scrollbar(
-              child: CustomScrollView(
-                physics: BouncingScrollPhysics(),
-                controller: myScrollController,
-                slivers: <Widget>[
-                  SliverToBoxAdapter(child: SizedBox(height: 40,),),
-                  SliverAppBar(
-                    backgroundColor: Colors.transparent,
-                    elevation: 0,
-                    automaticallyImplyLeading: false,
-                    actions: <Widget>[Container()],
-                    floating: true,
-                    snap: true,
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        GestureDetector(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                            decoration: BoxDecoration(
-                              color: (this.isMostRecent?whiteColor:mainColor),
-                              boxShadow: [BoxShadow(blurRadius: 3, color: greyColor.withOpacity(0.5), spreadRadius: 0)],
-                            ),
-                            child: CustomText("Les plus aimés", (this.isMostRecent?greyColor:whiteColor), 4, bold: true, padding: 0,),
-                          ),
-                          onTap: (){
-                            print("les plus aimés");
-                            if(this.isMostRecent)
-                              setState(() {
-                              this.isMostRecent = !this.isMostRecent; 
-                              });
-                          },
-                        ),
-                        GestureDetector(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                            decoration: BoxDecoration(
-                              color: (this.isMostRecent?mainColor:whiteColor),
-                              boxShadow: [BoxShadow(blurRadius: 3, color: greyColor.withOpacity(0.5), spreadRadius: 0)],
-                            ),
-                            child: CustomText("Derniers ajouts", (this.isMostRecent?whiteColor:greyColor), 4, bold: true, padding: 0,),
-                          ),
-                          onTap: (){
-                            print("Derniers ajouts");
-                            if(!this.isMostRecent)
-                              setState(() {
-                              this.isMostRecent = !this.isMostRecent; 
-                              });
-                          },
-                        ),
-                      ],
-                    ),
+          child: Stack(
+            children: <Widget>[
+              Container(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height-kToolbarHeight,
+                color: lightGreyColor,
+                child: Scrollbar(
+                  child: TabBarView(
+                    controller: tabController,
+                    children: <Widget>[
+                      explorerCard(false),
+                      explorerCard(true),
+                    ],
                   ),
-                  SliverToBoxAdapter(child: SizedBox(height: 40,),),
-                  explorerCard(this.isMostRecent),
-                ],
+                ),
               ),
-            ),
-          ),
+              button()
+
+            ],
+          )
         ),
       ],
       pageName: "EXPLORER",
@@ -163,6 +125,60 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
   }
 
 
+  Widget button(){
+    return AnimatedContainer(
+      curve: Curves.easeInOutCirc,
+      duration: Duration(milliseconds: 500),
+      height: isHeaderButtonShown ? 100 : 0,
+      child: SingleChildScrollView(
+        reverse: true,
+        child: Container(
+          height: 100,
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              GestureDetector(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                  decoration: BoxDecoration(
+                    color: (this.isMostRecent?whiteColor:mainColor),
+                    boxShadow: [BoxShadow(blurRadius: 3, color: greyColor.withOpacity(0.5), spreadRadius: 0)],
+                  ),
+                  child: CustomText("Les plus aimés", (this.isMostRecent?greyColor:whiteColor), 4, bold: true, padding: 0,),
+                ),
+                onTap: (){
+                  print("les plus aimés");
+                  if(this.isMostRecent){
+                    setState(() => this.isMostRecent = false);
+                    tabController.animateTo(0);
+                  }
+                },
+              ),
+              GestureDetector(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                  decoration: BoxDecoration(
+                    color: (this.isMostRecent?mainColor:whiteColor),
+                    boxShadow: [BoxShadow(blurRadius: 3, color: greyColor.withOpacity(0.5), spreadRadius: 0)],
+                  ),
+                  child: CustomText("Derniers ajouts", (this.isMostRecent?whiteColor:greyColor), 4, bold: true, padding: 0,),
+                ),
+                onTap: (){
+                  print("Derniers ajouts");
+                  if(!this.isMostRecent){
+                    setState(() => this.isMostRecent = true);
+                    tabController.animateTo(1);
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget explorerCard(bool isLatest){
     try {
       return FutureBuilder<RequestType>(
@@ -171,34 +187,31 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
           if(snapshot.hasData){
             if(snapshot.hasError) return myErrorWidget(RequestType.echecWithCustomMessage("Désolé, un problème s'est produit durant la recherche"), isLatest);
             var reponse = snapshot.data;
-            if(reponse.getisSuccess){
+            if(reponse != null && reponse.getisSuccess){
               List<Teacher> tearchersFound = teachersFromList(reponse.getdata);
               if(tearchersFound!=null && tearchersFound.isNotEmpty)
-                return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (BuildContext context, int index) {print(index);
-                      return Container(
-                        padding: EdgeInsets.symmetric(horizontal: (phoneWidth-(phoneWidth<400?320:350))/2),
-                        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width<400?320:350),
-                        child: TeacherCard(tearchersFound[index], "Explorer$isLatest${tearchersFound[index].id}",),
-                      );
-                    },
-                    childCount: tearchersFound.length,
-                  ),
+                return ListView.builder(
+                  controller: myScrollController,
+                  itemCount: tearchersFound.length,
+                  itemBuilder: (BuildContext context, int index) {print(index);
+                    return Container(
+                      padding: EdgeInsets.only(left: (phoneWidth-(phoneWidth<400?320:350))/2, right: (phoneWidth-(phoneWidth<400?320:350))/2, top: (index==0 ? 90 : 0)),
+                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width<400?320:350),
+                      child: TeacherCard(tearchersFound[index], "Explorer$isLatest${tearchersFound[index].id}",),
+                    );
+                  },
                 );
               return myErrorWidget(reponse, isLatest, isEmpty:true);
           }
           else return myErrorWidget(reponse, isLatest);
         }
           else
-            return SliverToBoxAdapter(
-              child: Center(
-                child: Container(
-                  width: 250,
-                  height: 300,
-                  child: Center(
-                    child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(mainColor)),
-                  ),
+            return Center(
+              child: Container(
+                width: 250,
+                height: 300,
+                child: Center(
+                  child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(mainColor)),
                 ),
               ),
             );
@@ -244,27 +257,22 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
   }*/
 
   Widget myErrorWidget(RequestType reponse, bool isLatest, {bool isEmpty = false}){
-    /*return isEmpty
-        ? SliverToBoxAdapter(child: notFoundWidget("Aucun professeur n'a été trouvé", ""))
-        : SliverToBoxAdapter(child: errorWidget(reponse));*/
-    return SliverToBoxAdapter(
-      child: Column(
-        children: <Widget>[
-          isEmpty ? notFoundWidget("Aucun professeur n'a été trouvé", "") : errorWidget(reponse),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: (phoneWidth-250)/2),
-            child: FlatButton.icon(
-              icon: Icon(Icons.settings_backup_restore, color: mainColor,),
-              label: CustomText("Réessayer", mainColor, 4), 
-              onPressed: () { Navigator.of(context).pushReplacementNamed(Vues.explorer);},
-              shape: RoundedRectangleBorder(
-                side: BorderSide(color: mainColor)
-              ),
-              splashColor: mainHighlightColor,
+    return Column(
+      children: <Widget>[
+        isEmpty ? notFoundWidget("Aucun professeur n'a été trouvé", "") : errorWidget(reponse),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: (phoneWidth-250)/2),
+          child: FlatButton.icon(
+            icon: Icon(Icons.settings_backup_restore, color: mainColor,),
+            label: CustomText("Réessayer", mainColor, 4), 
+            onPressed: () { Navigator.of(context).pushReplacementNamed(Vues.explorer);},
+            shape: RoundedRectangleBorder(
+              side: BorderSide(color: mainColor)
             ),
+            splashColor: mainHighlightColor,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

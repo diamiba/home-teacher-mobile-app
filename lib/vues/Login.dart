@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:home_teacher/vues/Home.dart';
-import 'package:home_teacher/vues/PasswordRecovery.dart';
-import 'package:home_teacher/vues/Register.dart';
+//import 'package:home_teacher/vues/Home.dart';
+//import 'package:home_teacher/vues/Register.dart';
+//import 'package:home_teacher/vues/PasswordRecovery.dart';
 import 'package:home_teacher/Utile.dart';
 import 'package:home_teacher/Modele.dart';
 import 'package:home_teacher/Services.dart' as serv;
