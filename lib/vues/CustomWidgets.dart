@@ -606,109 +606,59 @@ class _CustomBodyState extends State<CustomBody>  with TickerProviderStateMixin 
   }
 
   Widget appBar(bool haveBackground){
-    if(haveBackground)
-      return AnimatedBuilder(
-          animation: _colorAnimationController,
-          builder: (context, child) {
-          return SliverAppBar(
-            pinned: true,
-            automaticallyImplyLeading: false,
-            actions: <Widget>[Container(),],
-            title: Row(
-              children: <Widget>[
-                this.widget.isConnected?Container(
-                  width: 80,
-                  height: 25,
-                  margin: EdgeInsets.only(left: 25.0),
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage("images/logo_white.png"),
-                    ),
+    return AnimatedBuilder(
+        animation: _colorAnimationController,
+        builder: (context, child) {
+        return SliverAppBar(
+          pinned: true,
+          automaticallyImplyLeading: false,
+          actions: <Widget>[Container(),],
+          title: Row(
+            children: <Widget>[
+              this.widget.isConnected?Container(
+                width: 80,
+                height: 25,
+                margin: EdgeInsets.only(left: 25.0),
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage("images/logo_white.png"),
                   ),
-                ):Container(),
-                Spacer(flex: 1,),
-                Builder(
-                  builder: (context) {
-                    return Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.all(0.0),
-                      margin: EdgeInsets.only(right: 25.0),
-                      height: 32,
-                      width: 35,
-                      decoration: BoxDecoration(
-                        color: mainColor,
-                        borderRadius: BorderRadius.all(Radius.circular(2)),
-                      ),
-                      child: FlatButton(
-                        padding: const EdgeInsets.all(0.0),
-                        child: AnimatedIcon(
-                          color: whiteColor,
-                          icon: AnimatedIcons.menu_close,
-                          progress: _menuAnimationController,
-                        ),
-                        onPressed: () async {
-                          await animateIcon(true);
-                          Scaffold.of(context).openEndDrawer();
-                        },
-                      ),
-                    );
-                  }
                 ),
-              ],
-            ),
-            backgroundColor: _colorTween.value,
-          );
-        }
-      );
-    else
-      return SliverAppBar(
-        pinned: true,
-        automaticallyImplyLeading: false,
-        actions: <Widget>[Container(),],
-        title: Row(
-          children: <Widget>[
-            this.widget.isConnected?Container(
-              width: 80,
-              height: 25,
-              margin: EdgeInsets.only(left: 25.0),
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("images/logo_white.png"),
-                ),
-              ),
-            ):Container(),
-            Spacer(flex: 1,),
-            Builder(
-              builder: (context) {
-                return Container(
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.all(0.0),
-                  margin: EdgeInsets.only(right: 25.0),
-                  height: 32,
-                  width: 35,
-                  decoration: BoxDecoration(
-                    color: mainColor,
-                    borderRadius: BorderRadius.all(Radius.circular(2)),
-                  ),
-                  child: FlatButton(
+              ):Container(),
+              Spacer(flex: 1,),
+              Builder(
+                builder: (context) {
+                  return Container(
+                    alignment: Alignment.centerRight,
                     padding: const EdgeInsets.all(0.0),
-                    child: AnimatedIcon(
-                      color: whiteColor,
-                      icon: AnimatedIcons.menu_close,
-                      progress: _menuAnimationController,
+                    margin: EdgeInsets.only(right: 25.0),
+                    height: 32,
+                    width: 35,
+                    decoration: BoxDecoration(
+                      color: mainColor,
+                      borderRadius: BorderRadius.all(Radius.circular(2)),
                     ),
-                    onPressed: () async {
-                      await animateIcon(true);
-                      Scaffold.of(context).openEndDrawer();
-                    },
-                  ),
-                );
-              }
-            ),
-          ],
-        ),
-        backgroundColor: mainColor,
-      );
+                    child: FlatButton(
+                      padding: const EdgeInsets.all(0.0),
+                      child: AnimatedIcon(
+                        color: whiteColor,
+                        icon: AnimatedIcons.menu_close,
+                        progress: _menuAnimationController,
+                      ),
+                      onPressed: () async {
+                        await animateIcon(true);
+                        Scaffold.of(context).openEndDrawer();
+                      },
+                    ),
+                  );
+                }
+              ),
+            ],
+          ),
+          backgroundColor: _colorTween.value,
+        );
+      }
+    );
   }
 
   Widget body(){
