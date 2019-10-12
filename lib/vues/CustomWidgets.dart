@@ -1,21 +1,22 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:home_teacher/vues/EditProfile.dart';
-import 'package:home_teacher/vues/EditProfileStudent.dart';
-import 'package:home_teacher/vues/EditProfileTeacher.dart';
-import 'package:home_teacher/vues/Explorer.dart';
+//import 'package:home_teacher/vues/EditProfile.dart';
+//import 'package:home_teacher/vues/EditProfileStudent.dart';
+//import 'package:home_teacher/vues/EditProfileTeacher.dart';
+//import 'package:home_teacher/vues/Explorer.dart';
 import 'package:home_teacher/Utile.dart';
 import 'package:home_teacher/Modele.dart';
 import 'package:home_teacher/Services.dart';
-import 'package:home_teacher/vues/Favoris.dart';
-import 'package:home_teacher/vues/Home.dart';
-import 'package:home_teacher/vues/Login.dart';
-import 'package:home_teacher/vues/PasswordRecovery.dart';
-import 'package:home_teacher/vues/Register.dart';
+//import 'package:home_teacher/vues/Favoris.dart';
+//import 'package:home_teacher/vues/Home.dart';
+//import 'package:home_teacher/vues/Login.dart';
+//import 'package:home_teacher/vues/PasswordRecovery.dart';
+//import 'package:home_teacher/vues/Register.dart';
 import 'package:home_teacher/vues/TeacherDetails.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 class Vues{
@@ -112,11 +113,11 @@ class CustomText extends StatelessWidget {
 
 class CustomButton extends StatelessWidget {
   String text;
-  Color color = whiteColor;
+  Color color = whiteColor, disableColor;
   Function onPressed;
   bool shadow;
   EdgeInsetsGeometry margin;
-  CustomButton(this.text, this.color, this.onPressed, {this.shadow = true, this.margin = const EdgeInsets.all(0)});
+  CustomButton(this.text, this.color, this.onPressed, {this.shadow = true, this.margin = const EdgeInsets.all(0), this.disableColor = greyColor});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -136,6 +137,7 @@ class CustomButton extends StatelessWidget {
           children: <Widget>[CustomText(text, whiteColor, 4, padding: 0, overflow: true,),],
         ),
         color: color,
+        disabledColor: disableColor,
         splashColor: Colors.black.withOpacity(0.2),
         elevation: this.shadow?2:0,
         highlightElevation: this.shadow?15:0,
@@ -447,8 +449,8 @@ class _MyDrawerState extends State<MyDrawer>  with SingleTickerProviderStateMixi
               icon: AnimatedIcons.menu_close,
               progress: _menuAnimationController,
             ),
-            onPressed: () async {
-              await _menuAnimationController.reverse();
+            onPressed: () {
+              _menuAnimationController.reverse();
               Navigator.of(context).pop();
             },
           ),
@@ -478,13 +480,17 @@ class _MyDrawerState extends State<MyDrawer>  with SingleTickerProviderStateMixi
         liste.add(drawerItem("MON COMPTE", Vues.editStudent));
       liste.add(drawerItem("MODIFIER MES INFORMATIONS", Vues.editCommon));
       liste.add(drawerItem("DECONNEXION", null, isLogout: true));
+      liste.add(drawerItem("AIDE", null));
+      liste.add(drawerItem("BLOG", null));
+      liste.add(Visibility(child: LinearProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(mainColor)), visible: isLoading,));
     }
     else{
       liste.add(drawerItem("CONNEXION", Vues.login));
       liste.add(drawerItem("INSCRIPTION", Vues.register));
       liste.add(drawerItem("MOT DE PASSE OUBLIÉ", Vues.passwordRecovery));
+      liste.add(drawerItem("AIDE", null));
+      liste.add(drawerItem("BLOG", null));
     }
-    liste.add(Visibility(child: LinearProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(mainColor)), visible: isLoading,));
 
            
     return Drawer(
@@ -506,7 +512,9 @@ class _MyDrawerState extends State<MyDrawer>  with SingleTickerProviderStateMixi
         () async {
           if(!isLogout){
             Navigator.of(context).pop();
-            if(texte!=this.widget.pageName)
+            if(texte == "AIDE" || texte == "BLOG")
+              openBrowser(texte);
+            else if(texte!=this.widget.pageName)
               Navigator.pushNamed(context, destinationPage);
           }
           else{
@@ -534,20 +542,31 @@ class _MyDrawerState extends State<MyDrawer>  with SingleTickerProviderStateMixi
       ),
     );
   }
+
+  openBrowser(String target) async {
+    String url;
+    if(target == "AIDE")
+      url = "https://home-teacher.africa/2019/02/19/cour-a-domicile";
+    else if (target == "BLOG")
+      url = "https://home-teacher.africa/blog";
+    if (await canLaunch(url)) {
+      print("open browser");
+      await launch(url);
+    } else {
+      print("error open browser");
+    }
+  }
 }
 
 
 class CustomBody extends StatefulWidget {
-  Widget content;
   List<Widget> children;
   String pageName;
   bool isConnected, isSearch, haveBackground;
   double horizontalPadding, bottomPadding;
   var scaffoldState;
   ScrollController myScrollController;
-  CustomBody(this.content, {this.children, this.pageName, this.isConnected = false, this.horizontalPadding = 15, this.bottomPadding = 20, this.haveBackground = true, this.isSearch = false, this.scaffoldState, this.myScrollController}){
-    /*if(scaffoldState==null) scaffoldState = GlobalKey<ScaffoldState>();
-    this.scaffoldState = scaffoldState;*/
+  CustomBody({this.children, this.pageName, this.isConnected = false, this.horizontalPadding = 15, this.bottomPadding = 20, this.haveBackground = true, this.isSearch = false, this.scaffoldState, this.myScrollController}){
     currentScaffoldState = this.scaffoldState;
   }
   @override
@@ -645,8 +664,8 @@ class _CustomBodyState extends State<CustomBody>  with TickerProviderStateMixin 
                         icon: AnimatedIcons.menu_close,
                         progress: _menuAnimationController,
                       ),
-                      onPressed: () async {
-                        await animateIcon(true);
+                      onPressed: () {
+                        animateIcon(true);
                         Scaffold.of(context).openEndDrawer();
                       },
                     ),
@@ -668,7 +687,7 @@ class _CustomBodyState extends State<CustomBody>  with TickerProviderStateMixin 
       mySlivers.addAll(this.widget.children);
     return CustomScrollView(
       controller: _scrollController,
-      physics: BouncingScrollPhysics(),
+      //physics: BouncingScrollPhysics(),
       slivers: mySlivers,
     );
   }
@@ -810,7 +829,7 @@ class TeacherCard extends StatelessWidget {
             ),
             CustomText("${this._teacher.firstname} ${this._teacher.lastname.toUpperCase()}", darkColor, 3, bold: true,padding: 5, textAlign: TextAlign.center,),
             CustomText(this._teacher.job, mainColor, 4, italic: true,padding: 2, textAlign: TextAlign.center),
-            setStars(this._teacher.mark),
+            setStars(this._teacher.mark, this._teacher.numberOfVotes),
             CustomText(description, greyColor, 5, italic: true,textAlign: TextAlign.center,padding: 25, lineSpacing: 1.2),
             CustomButton("VOIR !", mainColor, 
               (){
@@ -834,12 +853,14 @@ class TeacherCard extends StatelessWidget {
       ),
     );
   }
-  Widget setStars(int nb){
+  Widget setStars(int nb, int numberOfVotes){
     nb = (nb>=0 && nb<=maxMark)?nb:0;
 
     List <Widget> liste = List();
     for(int i=0; i<maxMark; i++)
       liste.add(Icon(i<nb?Icons.star:Icons.star_border, color: mainColor, size: 20.0,));
+    if (numberOfVotes!=null)
+      liste.add(CustomText(" (${formateNumber(numberOfVotes)} vote${numberOfVotes>1?"s":""})", mainColor,4, padding: 5,));
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: liste,
@@ -870,7 +891,7 @@ class CustomModalProgressHUD extends StatelessWidget {
 
 Future<bool> demandeConfirmation(BuildContext context, String question, {IconData icon}) async {
   bool x = false;
-  bool reponse = await showModalBottomSheet<bool>(
+  await showModalBottomSheet<bool>(
     context: context,
     builder: (BuildContext context) => Container(
       color: whiteColor,
@@ -878,27 +899,27 @@ Future<bool> demandeConfirmation(BuildContext context, String question, {IconDat
         shrinkWrap: true,
         primary: false,
         children: <Widget>[
+          SizedBox(height: 40.0),
+          icon!=null?Center(child:Icon(icon, color: mainColor, size: 35,)):Container(),
           SizedBox(height: 20.0),
-          icon!=null?Center(child:Icon(icon, color: mainColor, size: 30,)):Container(),
-          SizedBox(height: 10.0),
-          CustomText(question, darkColor, 5, textAlign: TextAlign.center, padding: 0,),
+          CustomText(question, mainColor, 4, textAlign: TextAlign.center, padding: 0,),
           ButtonBar(
+            alignment: MainAxisAlignment.center,
             children: <Widget>[
               FlatButton(
-                child: CustomText("Oui", mainColor, 5, textAlign: TextAlign.center, padding: 0,),
-                onPressed: (){
-                  x=true;
-                  Navigator.pop(context);
-                  return true;
-                }),
-              FlatButton(
-                child: CustomText("Non", mainColor, 5, textAlign: TextAlign.center, padding: 0,),
+                child: CustomText("NON", mainColor, 4, textAlign: TextAlign.center, padding: 0,),
                 onPressed: (){
                   x=false;
                   Navigator.pop(context);
                   return false;
                 } 
-              )
+              ),
+              CustomButton("OUI", mainColor,
+               (){
+                  x=true;
+                  Navigator.pop(context);
+                  return true;
+                }, shadow: false,),
             ],
           )
         ],
@@ -940,35 +961,54 @@ class _NoteTeacherWidgetState extends State<NoteTeacherWidget> {
   Widget build(BuildContext context) {
     List <Widget> liste = List();
     for(int i=1; i <= maxMark; i++)
-      liste.add(
-        IconButton(
-          padding: const EdgeInsets.all(2),
-          icon: Icon((i<=note) ? Icons.star : Icons.star_border, color: mainColor,),
-          iconSize: 30,
-          onPressed: ()=>setState(()=>note=i),
+    liste.add(
+        GestureDetector(
+          child: Padding(
+            padding: const EdgeInsets.all(0.0),
+            child: Icon((i<=note) ? Icons.star : Icons.star_border, color: mainColor, size: 35,),
+          ),
+          onTap: ()=>setState(()=>note=i),
         )
       );
 
     return Container(
-      padding: EdgeInsets.only(top:25, left: 10, right: 10, bottom: 0),
+      padding: EdgeInsets.only(top:25, left: 5, right: 5, bottom: 10),
       child: Column(
         children: <Widget>[
-          CustomText("$note/$maxMark", mainColor, 4),
-          Row(children: liste,mainAxisAlignment: MainAxisAlignment.center,),
-          ButtonBar(
-            alignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              FlatButton(
-                child: CustomText("Annuler", greyColor, 5),
-                onPressed: ()=>Navigator.of(context).pop(),
-                splashColor: mainColor,
-              ),
-              FlatButton(
-                splashColor: mainColor,
-                child: CustomText("Noter", greyColor, 5),
-                onPressed: ()=>Navigator.of(context).pop(note),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: CustomText("Quelle note voulez-vous donner à cet enseignant ?", mainColor, 3, textAlign: TextAlign.center,bold: true,lineSpacing: 1.2,),
+          ),
+          SizedBox(height: 10,),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Row(children: liste,mainAxisAlignment: MainAxisAlignment.center,),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: CustomText("La note que vous donnez à cet enseignant lui permettra d'améliorer sa visibilité dans les résultats de recherche, et en même temps lui permettra d'avoir une idée sur la qualité de ses services.", greyColor, 5, italic: true, lineSpacing: 1.3, textAlign: TextAlign.justify,),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width*0.05),
+            child: Row(
+              //alignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                FlatButton(
+                  padding: EdgeInsets.symmetric(horizontal: 6),
+                  child: CustomText("ANNULER", mainColor, 6),
+                  onPressed: ()=>Navigator.of(context).pop(),
+                  splashColor: mainColor,
+                ),
+                FlatButton(
+                  padding: EdgeInsets.symmetric(horizontal: 6),
+                  child: CustomText("ENREGISTRER", whiteColor, 6),
+                  onPressed: ()=>Navigator.of(context).pop(note),
+                  color: mainColor,
+                  splashColor: mainHighlightColor,
+                ),
+              ],
+            ),
           )
         ],
       ),

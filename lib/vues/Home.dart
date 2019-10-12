@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:home_teacher/Utile.dart';
 import 'package:home_teacher/Modele.dart';
 import 'package:home_teacher/Services.dart';
-import 'package:home_teacher/vues/Explorer.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
+//import 'package:home_teacher/vues/Explorer.dart';
+//import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
 
 class HomePage extends StatefulWidget {
@@ -64,7 +64,6 @@ class _HomePageState extends State<HomePage> {
     height = (MediaQuery.of(context).size.height-460);
     phoneWidth = MediaQuery.of(context).size.width;
     return CustomBody(
-      Container(),
       children: <Widget>[
         SliverList(
           delegate: SliverChildListDelegate(
@@ -79,7 +78,8 @@ class _HomePageState extends State<HomePage> {
                     height: 45,
                     child: CustomText("Home-Teacher",whiteColor, 1, bold: true, padding: 0,),
                   ),
-                  Container(
+                  CustomText("Nos professeurs n'attendent que vous.", whiteColor, 4, padding: 2,),
+                  /*Container(
                     height: 20,
                     margin: const EdgeInsets.only(left: 6),
                     child: TyperAnimatedTextKit(
@@ -93,7 +93,7 @@ class _HomePageState extends State<HomePage> {
                       textAlign: TextAlign.start,
                       alignment: AlignmentDirectional.topStart // or Alignment.topLeft
                     ),
-                  ),
+                  ),*/
                   SizedBox(height: 50,),
                 ],),
               ),
@@ -287,6 +287,7 @@ class _HomePageState extends State<HomePage> {
                   constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width<400?320:350),
                   child: TeacherCard(tearchersSuggestion[index-4], "HomeSuggestion${tearchersSuggestion[index-4].id}"),
                 );
+              return Container();
             },
             childCount: suggestionsShown?tearchersSuggestion.length+4:2,
           ),

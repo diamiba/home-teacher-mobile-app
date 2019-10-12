@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:home_teacher/Utile.dart';
 import 'package:home_teacher/Modele.dart';
 import 'package:home_teacher/Services.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
+//import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
 
 class ExplorerPage extends StatefulWidget {
@@ -20,6 +20,7 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
 
   void initState() {
     tabController = TabController(initialIndex: 1, length: 2, vsync: this);
+    tabController.addListener(_tabController);
     mainScrollController = ScrollController();
     myScrollController = ScrollController();
     myScrollController.addListener(_scrollListener);
@@ -52,13 +53,31 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
 
     lastScrollControlerPosition = myScrollController.offset;
   }
+  _tabController(){
+    //print(tabController.indexIsChanging);
+    //print("previousIndex: ${tabController.previousIndex}  index: ${tabController.index}");
+    if(tabController.index!=(isMostRecent?1:0)){
+      //print("must change color");
+      setState(() {
+        isMostRecent = !isMostRecent;
+        if(!isHeaderButtonShown)
+          isHeaderButtonShown = true;
+      });
+      if(!isHeaderShown){
+        mainScrollController.animateTo(
+          mainScrollController.position.minScrollExtent,
+          curve: Curves.easeInOutCirc, duration: Duration(milliseconds: 150)
+        );
+        this.isHeaderShown = true;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays ([]); // cacher la status bar
     phoneWidth = MediaQuery.of(context).size.width;
     return CustomBody(
-      Container(),
       children: <Widget>[
         SliverList(
           delegate: SliverChildListDelegate(
@@ -70,7 +89,8 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
                   child: CustomText("Explorer",whiteColor, 1, bold: true, padding: 0,),
                 ),
               ),
-              Center(
+              Center(child: CustomText("Nos professeurs n'attendent que vous.", whiteColor, 4, padding: 5,)),
+              /*Center(
                 child: SizedBox(
                   height: 20,
                   child: Padding(
@@ -88,7 +108,7 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
                     ),
                   ),
                 ),
-              ),
+              ),*/
               SizedBox(height: 50,),
             ],
           ),
@@ -152,6 +172,13 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
                   if(this.isMostRecent){
                     setState(() => this.isMostRecent = false);
                     tabController.animateTo(0);
+                    if(!isHeaderShown){
+                      mainScrollController.animateTo(
+                        mainScrollController.position.minScrollExtent,
+                        curve: Curves.easeInOutCirc, duration: Duration(milliseconds: 150)
+                      );
+                      this.isHeaderShown = true;
+                    }
                   }
                 },
               ),
@@ -169,6 +196,13 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
                   if(!this.isMostRecent){
                     setState(() => this.isMostRecent = true);
                     tabController.animateTo(1);
+                    if(!isHeaderShown){
+                      mainScrollController.animateTo(
+                        mainScrollController.position.minScrollExtent,
+                        curve: Curves.easeInOutCirc, duration: Duration(milliseconds: 150)
+                      );
+                      this.isHeaderShown = true;
+                    }
                   }
                 },
               ),
@@ -193,7 +227,7 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
                 return ListView.builder(
                   controller: myScrollController,
                   itemCount: tearchersFound.length,
-                  itemBuilder: (BuildContext context, int index) {print(index);
+                  itemBuilder: (BuildContext context, int index) {//print(index);
                     return Container(
                       padding: EdgeInsets.only(left: (phoneWidth-(phoneWidth<400?320:350))/2, right: (phoneWidth-(phoneWidth<400?320:350))/2, top: (index==0 ? 90 : 0)),
                       constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width<400?320:350),
@@ -259,6 +293,7 @@ class _ExplorerPageState extends State<ExplorerPage> with SingleTickerProviderSt
   Widget myErrorWidget(RequestType reponse, bool isLatest, {bool isEmpty = false}){
     return Column(
       children: <Widget>[
+        SizedBox(height: 150,),
         isEmpty ? notFoundWidget("Aucun professeur n'a été trouvé", "") : errorWidget(reponse),
         Container(
           padding: EdgeInsets.symmetric(horizontal: (phoneWidth-250)/2),

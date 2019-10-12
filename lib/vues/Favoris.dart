@@ -53,7 +53,6 @@ class _FavorisPageState extends State<FavorisPage> {
     SystemChrome.setEnabledSystemUIOverlays ([]); // cacher la status bar
     
     return CustomBody(
-      Container(),
       children: <Widget>[
         SliverToBoxAdapter(
           child: Container(
@@ -150,7 +149,7 @@ class _FavorisPageState extends State<FavorisPage> {
       if(index>=0)
         setState(
           (){
-            var t = favoriteTeachers.removeAt(index);
+            favoriteTeachers.removeAt(index);
           }
         );  
     }

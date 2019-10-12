@@ -6,7 +6,6 @@ import 'package:home_teacher/Utile.dart';
 import 'package:home_teacher/Modele.dart';
 import 'package:home_teacher/Services.dart';
 import 'package:home_teacher/vues/ShowPhoto.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
 
@@ -24,7 +23,7 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
   String _heroTag;
   Teacher _teacher;
   int mark=0, favoriteId;
-  bool isFavorite = false, _isLoading = false, _dataDownloading = true;
+  bool isFavorite = false, _isAddingRemoving = false, _isRating = false, _dataDownloading = true;
   Widget image;
   var _scaffoldState = GlobalKey<ScaffoldState>();
 
@@ -35,90 +34,86 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays ([]); // cacher la status bar
-    return ModalProgressHUD(
-      inAsyncCall: _isLoading,
-      progressIndicator: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        child: Image.asset("images/favorite.gif", fit: BoxFit.fitWidth,),
-      ),
-      child: CustomBody(Container(),
-        children: <Widget>[
-          SliverToBoxAdapter(
-            child: Center(
-              child: CustomCard(
-                Column(
-                  children: <Widget>[
-                    Hero(
-                      tag: this._heroTag,
-                      transitionOnUserGestures: true,
-                      child: GestureDetector(
-                        child: Container(
-                          constraints: BoxConstraints(minWidth: 150, maxWidth: 250),
-                          child: ClipRRect(
-                                borderRadius: BorderRadius.all(Radius.circular(20)),
-                            child: CachedNetworkImage(
-                              imageUrl: this._teacher.profilePicture,
-                              imageBuilder: (context, imageProvider){
-                                this.image = Image(image: imageProvider, fit: BoxFit.contain);
-                                return Image(image: imageProvider);
-                              },
-                              placeholder: (context, url) => Container(
-                                  width: 150,
-                                  height: 150,
-                                  padding: const EdgeInsets.all(50),
-                                  //borderRadius: BorderRadius.all(Radius.circular(20)),
-                                  child: CircularProgressIndicator(
-                                    backgroundColor: mainLightColor,
-                                  ),
-                                ),
-                              errorWidget: (context, url, error){
-                                this.image = Image.asset("images/profil_picture.png", fit: BoxFit.contain);
-                                print(error);
-                                return Image.asset("images/profil_picture.png");
-                              } 
+    return CustomBody(
+      children: <Widget>[
+        SliverToBoxAdapter(
+          child: Center(
+            child: CustomCard(
+              Column(
+                children: <Widget>[
+                  Hero(
+                    tag: this._heroTag,
+                    transitionOnUserGestures: true,
+                    child: GestureDetector(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: (MediaQuery.of(context).size.width*0.08)),
+                        //constraints: BoxConstraints(minWidth: 150, maxWidth: 250),
+                        child: ClipRRect(
+                              borderRadius: BorderRadius.all(Radius.circular(20)),
+                          child: CachedNetworkImage(
+                            imageUrl: this._teacher.profilePicture,
+                            imageBuilder: (context, imageProvider){
+                              this.image = Image(image: imageProvider, fit: BoxFit.contain);
+                              return Image(image: imageProvider);
+                            },
+                            placeholder: (context, url) => Container(
+                              width: 150,
+                              height: 150,
+                              padding: const EdgeInsets.all(50),
+                              child: CircularProgressIndicator(
+                                backgroundColor: mainLightColor,
+                              ),
                             ),
+                            errorWidget: (context, url, error){
+                              this.image = Image.asset("images/profil_picture.png", fit: BoxFit.contain);
+                              print(error);
+                              return Image.asset("images/profil_picture.png");
+                            } 
                           ),
                         ),
-                        onTap: (){
-                          Navigator.push(context,
-                            MaterialPageRoute(builder: (context)=> ShowPhoto(image: this.image, heroTag: this._heroTag,))
-                          );
-                        }
                       ),
+                      onTap: (){
+                        Navigator.push(context,
+                          MaterialPageRoute(builder: (context)=> ShowPhoto(image: this.image, heroTag: this._heroTag,))
+                        );
+                      }
                     ),
-                    CustomText("${this._teacher.firstname} ${this._teacher.lastname.toUpperCase()}", darkColor, 3, bold: true,padding: 5,textAlign: TextAlign.center,),
-                    CustomText(this._teacher.job, mainColor, 4, italic: true,padding: 2,textAlign: TextAlign.center,),
-                    setStars(this._teacher.mark, this._teacher.numberOfVotes),
-                    CustomText(this._teacher.description, greyColor, 5, italic: true,textAlign: TextAlign.center,padding: 25, lineSpacing: 1.2,overflow: false,),
-                    Container(color: greyColor, height: 0.3,margin: EdgeInsets.symmetric(vertical: 10),),
-                    infos(Icons.phone, "NUMERO DE TELEPHONE", this._teacher.phoneNumber, this.call, waitForData: true),
-                    infos(Icons.mail, "ADRESSE MAIL", this._teacher.mail, sendMail, waitForData: true),
-                    infos(Icons.place, "ADRESSE", this._teacher.fullAdress, null, waitForData: true),
-                    infos(Icons.school, "FORMATION", this._teacher.education, null),
-                    Container(color: greyColor, height: 0.3,margin: EdgeInsets.symmetric(vertical: 10),),
-                    listToWidget("CLASSES ENSEIGNEES", this._teacher.levelTeached),
-                    SizedBox(height: 10,),
-                    listToWidget("QUARTIERS ENSEIGNEES", this._teacher.quarterTeached),
-                    Container(color: greyColor, height: 0.3,margin: EdgeInsets.symmetric(vertical: 10),),
-                    CustomButton("NOTER", mainColor, ()=>_noter(),margin: EdgeInsets.symmetric(vertical: 10),),
-                    isFavorite?CustomButton("RETIRER DES FAVORIS", redColor, ()=>_retirerFavoris(this._teacher),margin: EdgeInsets.symmetric(vertical: 10),)
-                    :CustomButton("AJOUTER A MES FAVORIS", mainColor, ()=>_ajouterFavoris(this._teacher),margin: EdgeInsets.symmetric(vertical: 10),)
-                  ],
                   ),
-                  margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
-                  padding: const EdgeInsets.symmetric(vertical: 35, horizontal: 25),
+                  CustomText("${this._teacher.firstname} ${this._teacher.lastname.toUpperCase()}", darkColor, 3, bold: true,padding: 5,textAlign: TextAlign.center,),
+                  CustomText(this._teacher.job, mainColor, 4, italic: true,padding: 2,textAlign: TextAlign.center,),
+                  setStars(this._teacher.mark, this._teacher.numberOfVotes),
+                  CustomText(this._teacher.description, greyColor, 5, italic: true,textAlign: TextAlign.center,padding: 25, lineSpacing: 1.2,overflow: false,),
+                  Container(color: greyColor, height: 0.3,margin: EdgeInsets.symmetric(vertical: 10),),
+                  infos(Icons.phone, "NUMERO DE TELEPHONE", this._teacher.phoneNumber, this.call, waitForData: true),
+                  infos(Icons.mail, "ADRESSE MAIL", this._teacher.mail, sendMail, waitForData: true),
+                  infos(Icons.place, "ADRESSE", this._teacher.fullAdress, null, waitForData: true),
+                  infos(Icons.school, "FORMATION", this._teacher.education, null),
+                  Container(color: greyColor, height: 0.3,margin: EdgeInsets.symmetric(vertical: 10),),
+                  listToWidget("CLASSES ENSEIGNEES", this._teacher.levelTeached),
+                  SizedBox(height: 10,),
+                  listToWidget("QUARTIERS ENSEIGNEES", this._teacher.quarterTeached),
+                  Container(color: greyColor, height: 0.3,margin: EdgeInsets.symmetric(vertical: 10),),
+                  _isRating
+                  ? CustomButton("EN COURS ...", mainColor, null, margin: EdgeInsets.symmetric(vertical: 10), disableColor: mainColor,)
+                  : CustomButton("NOTER", mainColor, ()=>_noter(),margin: EdgeInsets.symmetric(vertical: 10),),
+                  _isAddingRemoving
+                  ? CustomButton("${isFavorite?"RETRAIT":"AJOUT"} EN COURS ...", mainColor, null, margin: EdgeInsets.symmetric(vertical: 10), disableColor: isFavorite?redColor:mainColor,)
+                  : isFavorite
+                    ? CustomButton("RETIRER DES FAVORIS", redColor, ()=>_retirerFavoris(this._teacher),margin: EdgeInsets.symmetric(vertical: 10),)
+                    : CustomButton("AJOUTER A MES FAVORIS", mainColor, ()=>_ajouterFavoris(this._teacher),margin: EdgeInsets.symmetric(vertical: 10),)
+                ],
                 ),
-            ),
+                margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
+                padding: const EdgeInsets.symmetric(vertical: 35, horizontal: 25),
+              ),
           ),
-        ],
-        isConnected: true,
-        horizontalPadding: 0,
-        bottomPadding: 0,
-        haveBackground: false,
-        scaffoldState: _scaffoldState,
-      ),
-
+        ),
+      ],
+      isConnected: true,
+      horizontalPadding: 0,
+      bottomPadding: 0,
+      haveBackground: false,
+      scaffoldState: _scaffoldState,
     );
   }
 
@@ -129,7 +124,7 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
     List <Widget> liste = List();
     for(int i=0; i<maxMark; i++)
       liste.add(Icon(i<nbStars?Icons.star:Icons.star_border, color: mainColor, size: 20.0,));
-    liste.add(Text(" ($numberOfVotes)", style: TextStyle(color: mainColor, fontSize: size3),));
+    liste.add(CustomText(" (${formateNumber(numberOfVotes)} vote${numberOfVotes>1?"s":""})", mainColor,4, padding: 5,));
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: liste,
@@ -235,29 +230,34 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
   _retirerFavoris(Teacher teacher) async {
     bool reponse = await demandeConfirmation(context, "Voulez vous vraiment retirer ${teacher.firstname} de vos favoris?", icon: Icons.favorite_border);
     if(!reponse) return;
-    
+
+    setState(() => _isAddingRemoving = true);     
     RequestType delete = await deleteFavorite(this.favoriteId);
     if(delete.getisSuccess){
       this.favoriteId = null;
-      setState(()=>isFavorite = false); 
+      setState((){
+        isFavorite = false;
+        _isAddingRemoving = false;
+      }); 
     }
     else{
+      setState(() => _isAddingRemoving = false); 
       showNotification(delete.geterrorMessage, _scaffoldState.currentState);
     }
   }
 
   _ajouterFavoris(Teacher teacher) async {
-    setState(() => _isLoading = true); 
+    setState(() => _isAddingRemoving = true); 
     RequestType add = await addFavorite(teacher.id);
     if(add.getisSuccess){
       this.favoriteId = add.getdata["id"];
       setState((){
         isFavorite = true;
-        _isLoading = false;
+        _isAddingRemoving = false;
       }); 
     }
     else{
-      setState(() => _isLoading = false); 
+      setState(() => _isAddingRemoving = false); 
       showNotification(add.geterrorMessage, _scaffoldState.currentState);
     }
   }
@@ -275,6 +275,7 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
     ).then(
       (note) async {
         if(note!=null && note!=this.mark){
+          setState(()=>_isRating=true);
           RequestType rating = await rateTeacher(note, this._teacher.id);
           if(rating.getisSuccess){
             //mise a jour du nombre total et de la moyenne des note du prof
@@ -295,6 +296,7 @@ class _TeacherDetailsPageState extends State<TeacherDetailsPage> {
           }
           else
             showNotification(rating.geterrorMessage, _scaffoldState.currentState);
+          setState(()=>_isRating=false);          
         }
       }
     );

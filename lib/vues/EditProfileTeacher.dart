@@ -39,7 +39,6 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
     SystemChrome.setEnabledSystemUIOverlays ([]); // cacher la status bar
     return CustomModalProgressHUD(_isLoading,
     CustomBody(
-      Container(),
       children: [
          SliverToBoxAdapter(
           child: Center(
@@ -55,14 +54,15 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
                     child:Column(
                       children: <Widget>[
                         CustomDropDown("Dans quel(s) quartier(s) enseignez-vous ?", "Exemple : Pissy", selected, SearchOptions.quarterList, (String selection) {if (!this.quarterTeached.contains(selection)) setState((){this.quarterTeached.add(selection);});}),
-                        MyChips((this.quarterTeached)),
+                        MyChips((this.quarterTeached), updateButton),
                         CustomDropDown("Quelle(s) discipline(s) enseignez-vous ?", "Exemple : Mathématiques", selected, SearchOptions.subjectList, (String selection) {if (!this.subjectTeached.contains(selection)) setState((){this.subjectTeached.add(selection);});}),
-                        MyChips(this.subjectTeached),
+                        MyChips(this.subjectTeached, updateButton),
                         CustomDropDown("Quelle(s) classe(s) enseignez-vous ?", "Exemple : 6 ème, 5 ème", selected, SearchOptions.levelList, (String selection) {if (!this.levelTeached.contains(selection)) setState((){this.levelTeached.add(selection);});}),
-                        MyChips(this.levelTeached),
+                        MyChips(this.levelTeached, updateButton),
                         CustomTextField("Qu'avez-vous étudié ?", "Exemple : Audit et controle de gestion", TextInputType.text, education,
                           validator: (String value) {
                             if (value.isEmpty) return "Veuillez saisir votre dernier diplôme";
+                            return null;
                           },
                           onFieldSubmited: (String value) {
                             setState(()=>FocusScope.of(context).requestFocus(jobFocusNode));
@@ -72,6 +72,7 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
                           focus: jobFocusNode,
                           validator: (String value) {
                             if (value.isEmpty) return "Veuillez saisir votre métier actuel";
+                            return null;
                           },
                           onFieldSubmited: (String value) {
                             setState(()=>FocusScope.of(context).requestFocus(descriptionFocusNode));
@@ -83,9 +84,11 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
                           focus: descriptionFocusNode,
                           validator: (String value) {
                             if (value.isEmpty) return "Veuillez saisir un résumé sur vous";
+                            return null;
                           },
                           onFieldSubmited: (pass) async {
-                            _update();
+                            if(_haveNewValues())
+                              _update();
                           },
                         ),   
                       ],
@@ -93,7 +96,9 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
                   ),
                   _erreurText.isEmpty?Container():CustomText(_erreurText, redColor, 6, padding: 5, textAlign: TextAlign.center,),
                   CustomButton("ENREGISTER", mainColor, 
-                    () async=> _update(),
+                    _haveNewValues()
+                      ? () async=> _update()
+                      : null,
                     margin: const EdgeInsets.only(top: 25.0,),
                   ),
                 ],
@@ -113,6 +118,17 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
     ));
   }
 
+  bool _haveNewValues(){
+    return !(compareList(levelTeached, teacher.levelTeached) && compareList(quarterTeached, teacher.quarterTeached) && 
+          compareList(subjectTeached, teacher.subjectTeached) && job.text==teacher.job && 
+          education.text==teacher.education && description.text==teacher.description);
+  }
+
+  //mettre à jour le boutton lorsqu'on enlève un élément dans les chips
+  updateButton(){
+    if(_haveNewValues()) setState(() {});
+  }
+
   _update() async {
     print("update teacher infos");
     FocusScope.of(context).requestFocus(FocusNode());
@@ -125,10 +141,8 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
       setState(()=>_erreurText = "Vous devez choisir aumoins une matière enseignée");
     else if(levelTeached.isEmpty)
       setState(()=>_erreurText = "Vous devez choisir aumoins une classe enseignée");
-    else if(compareList(levelTeached, teacher.levelTeached) && compareList(quarterTeached, teacher.quarterTeached) && 
-          compareList(subjectTeached, teacher.subjectTeached) && job.text==teacher.job && 
-          education.text==teacher.education && description.text==teacher.description)
-      setState(()=>_erreurText = "Vous n'avez fait aucune modification");
+    else if(!_haveNewValues())
+      setState((){});
     else{
       setState(() => _isLoading = true);
       Map<String,dynamic> body = {
@@ -194,7 +208,8 @@ class _EditProfileTeacherPageState extends State<EditProfileTeacherPage> {
 
 class MyChips extends StatefulWidget {
   List<String> allElements;
-  MyChips(this.allElements);
+  Function update;
+  MyChips(this.allElements, this.update);
   @override
   _MyChipsState createState() => _MyChipsState(this.allElements);
 }
@@ -205,6 +220,7 @@ class _MyChipsState extends State<MyChips> {
 
   void _removeMaterial(String name) {
     allElements.remove(name);
+    this.widget.update();
   }
 
   @override

@@ -19,7 +19,7 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   User user;
-  int mark, maxMark=5;
+  int mark, maxMark = 5;
   String email, selectedCountry, selectedCity, indicatif;
   Widget image;
   File _image;
@@ -42,7 +42,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   FocusNode passwordNewFocusNode = new FocusNode();
   String _erreurTextInfos = "", _erreurTextPassword = "";
 
-  _EditProfilePageState(this.user){
+  _EditProfilePageState(this.user) {
     loadCities();
     selectedCountry = this.user.country;
     selectedCity = this.user.city;
@@ -53,216 +53,298 @@ class _EditProfilePageState extends State<EditProfilePage> {
     phoneNumberController = TextEditingController(text: this.user.phoneNumber);
   }
   loadCities() async {
-    if(!AllCities.isLoaded){
+    if (!AllCities.isLoaded) {
       await getCities();
-      if(AllCities.isLoaded)
-        setState(() {});
+      if (AllCities.isLoaded) setState(() {});
     }
   }
 
   @override
   Widget build(BuildContext context) {
     indicatif = AllCountries.getCountryPhonePrefix(selectedCountry);
-    SystemChrome.setEnabledSystemUIOverlays ([]); // cacher la status bar
-    return CustomModalProgressHUD(_isLoading,
-    CustomBody(
-      Container(),
-      children: <Widget>[
-        SliverToBoxAdapter(
-          child: Center(
-            child: CustomCard(
-              Column(
-                children: <Widget>[
-                  ProfilPicture(this.user, _scaffoldState),
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: CustomText("Modifier mon profil", darkColor, 3, bold: true),
-                  ),
-                  Form(
-                    key: _formKeyUpdateInfos,
-                    child:Column(children: <Widget>[
-                      CustomTextField("Nom :", "Exemple : Dubois", TextInputType.text, lastnameController,
-                        textCapitalization: TextCapitalization.characters,
-                        validator: (String value) {
-                          if (value.isEmpty) return "Veuillez saisir votre nom";
-                        },
-                        onFieldSubmited: (String value) {
-                          setState(()=>FocusScope.of(context).requestFocus(firstnameFocusNode));
-                        },
+    SystemChrome.setEnabledSystemUIOverlays([]); // cacher la status bar
+    return CustomModalProgressHUD(
+        _isLoading,
+        CustomBody(
+          children: <Widget>[
+            SliverToBoxAdapter(
+              child: Center(
+                child: CustomCard(
+                  Column(
+                    children: <Widget>[
+                      ProfilPicture(this.user, _scaffoldState),
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: CustomText("Modifier mon profil", darkColor, 3,
+                            bold: true),
                       ),
-                      CustomTextField("Prénom :", "Exemple : François Serges", TextInputType.text, firstnameController,
-                        textCapitalization: TextCapitalization.words,
-                        focus: firstnameFocusNode,
-                        validator: (String value) {
-                          if (value.isEmpty) return "Veuillez saisir votre prénom";
-                        },
-                        onFieldSubmited: (String value) {
-                          setState(()=>FocusScope.of(context).requestFocus(phoneNumberFocusNode));
-                        },
+                      Form(
+                          key: _formKeyUpdateInfos,
+                          child: Column(
+                            children: <Widget>[
+                              CustomTextField(
+                                "Nom :",
+                                "Exemple : Dubois",
+                                TextInputType.text,
+                                lastnameController,
+                                textCapitalization:
+                                    TextCapitalization.characters,
+                                validator: (String value) {
+                                  if (value.isEmpty)
+                                    return "Veuillez saisir votre nom";
+                                  return null;
+                                },
+                                onFieldSubmited: (String value) {
+                                  setState(() => FocusScope.of(context)
+                                      .requestFocus(firstnameFocusNode));
+                                },
+                              ),
+                              CustomTextField(
+                                "Prénom :",
+                                "Exemple : François Serges",
+                                TextInputType.text,
+                                firstnameController,
+                                textCapitalization: TextCapitalization.words,
+                                focus: firstnameFocusNode,
+                                validator: (String value) {
+                                  if (value.isEmpty)
+                                    return "Veuillez saisir votre prénom";
+                                  return null;
+                                },
+                                onFieldSubmited: (String value) {
+                                  setState(() => FocusScope.of(context)
+                                      .requestFocus(phoneNumberFocusNode));
+                                },
+                              ),
+                              DisableField("Adresse mail :", email),
+                              DisableField("Pays :", selectedCountry),
+                              (AllCities.citiesList == null ||
+                                      AllCities.citiesList.length < 2)
+                                  ? DisableField("Ville :", selectedCity)
+                                  : CustomDropDown(
+                                      "Ville :",
+                                      "Exemple : Ouagadougou",
+                                      selectedCity,
+                                      AllCities.citiesList, (String selection) {
+                                      if (selection != this.selectedCity)
+                                        setState(() {
+                                          this.selectedCity = selection;
+                                        });
+                                    }),
+                              CustomTextField(
+                                "Numéro de téléphone :",
+                                "Exemple : +226 72 69 33 24",
+                                TextInputType.phone,
+                                phoneNumberController,
+                                focus: phoneNumberFocusNode,
+                                prefixe: indicatif,
+                                validator: (String value) {
+                                  if (value.isEmpty)
+                                    return "Veuillez saisir votre numéro de téléphone";
+                                  int t = int.tryParse(value);
+                                  if (t == null)
+                                    return "votre numéro doit contenir uniquement des chiffres";
+                                  return null;
+                                },
+                                onFieldSubmited: (String value) {
+                                  setState(() => FocusScope.of(context)
+                                      .requestFocus(adressFocusNode));
+                                },
+                              ),
+                              CustomTextField(
+                                "Adresse :",
+                                "Exemple : Pissy, derrière le chateau d'eau",
+                                TextInputType.text,
+                                adressController,
+                                focus: adressFocusNode,
+                                textInputAction: TextInputAction.done,
+                                validator: (String value) {
+                                  if (value.isEmpty)
+                                    return "Veuillez saisir votre adresse";
+                                  return null;
+                                },
+                                onFieldSubmited: (String value) {
+                                  if(_haveNewValues())
+                                    _updateInfos();
+                                },
+                              ),
+                            ],
+                          )),
+                      _erreurTextInfos.isEmpty
+                          ? Container()
+                          : CustomText(_erreurTextInfos, redColor, 6,
+                              padding: 5, textAlign: TextAlign.center),
+                      CustomButton(
+                        "ENREGISTER",
+                        mainColor,
+                        _haveNewValues()
+                        ? () async => _updateInfos()
+                        : null,
+                        margin: const EdgeInsets.only(
+                          top: 25.0,
+                        ),
                       ),
-                      DisableField("Adresse mail :", email),
-                      /*CustomTextField("Adresse mail :", "Exemple : dubois.serges@mail.com", TextInputType.emailAddress, emailController,
-                        focus: emailFocusNode,
-                        validator: (String value) {
-                          if (value.isEmpty) return "Veuillez saisir votre adresse mail";
-                          else{
-                            Pattern pattern =
-                                r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-                            RegExp regex = new RegExp(pattern);
-                            if (!regex.hasMatch(value))
-                              return 'Veuillez saisir une adresse mail valide';
-                          }
-                        },
-                        onFieldSubmited: (String value) {
-                          setState(()=>FocusScope.of(context).requestFocus(phoneNumberFocusNode));
-                        },
-                      ),*/
-                      DisableField("Pays :", selectedCountry),
-                      (AllCities.citiesList == null || AllCities.citiesList.length < 2)
-                        ?
-                        DisableField("Ville :", selectedCity)
-                        :
-                        CustomDropDown("Ville :", "Exemple : Ouagadougou", selectedCity, AllCities.citiesList, (String selection) {if (selection != this.selectedCity) setState((){this.selectedCity = selection;});}),
-                      CustomTextField("Numéro de téléphone :", "Exemple : +226 72 69 33 24", TextInputType.phone, phoneNumberController,
-                        focus: phoneNumberFocusNode,
-                        prefixe: indicatif,
-                        validator: (String value) {
-                          if (value.isEmpty) return "Veuillez saisir votre numéro de téléphone";
-                          int t = int.tryParse(value);
-                          if (t==null) return "votre numéro doit contenir uniquement des chiffres";
-                        },
-                        onFieldSubmited: (String value) {
-                          setState(()=>FocusScope.of(context).requestFocus(adressFocusNode));
-                        },
+                      SizedBox(
+                        height: 50,
                       ),
-                      CustomTextField("Adresse :", "Exemple : Pissy, derrière le chateau d'eau", TextInputType.text, adressController,
-                        focus: adressFocusNode,
-                        textInputAction: TextInputAction.done,
-                        validator: (String value) {
-                          if (value.isEmpty) return "Veuillez saisir votre adresse";
-                        },
-                        onFieldSubmited: (String value) {
-                          _updateInfos();
-                        },
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: CustomText(
+                          "Modification de mon mot de passe",
+                          darkColor,
+                          3,
+                          bold: true,
+                        ),
                       ),
-                    ],)
-                  ),
-                  _erreurTextInfos.isEmpty?Container():CustomText(_erreurTextInfos, redColor, 6, padding: 5, textAlign: TextAlign.center),
-                  CustomButton("ENREGISTER", mainColor, 
-                    ()async=>_updateInfos(),
-                    margin: const EdgeInsets.only(top: 25.0,),
-                  ),
-                  SizedBox(height: 50,),
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: CustomText("Modification de mon mot de passe", darkColor, 3, bold: true,),
-                  ),
-                  Form(
-                    key: _formKeyUpdatePassword,
-                    child:Column(children: <Widget>[
-                      CustomTextField("Mot de passe actuel :", "********** ( 8 caractères minimum )", TextInputType.text, passwordController,
-                        focus: passwordFocusNode,
-                        obscure: true,
-                        validator: (String value) {
-                          if (value.isEmpty) return "Veuillez saisir votre mot de passe actuel";
-                          else if(value.length<8) return 'Veuillez saisir 8 caractères minimum';
-                        },
-                        onFieldSubmited: (String value) {
-                          setState(()=>FocusScope.of(context).requestFocus(passwordNewFocusNode));
-                        },
+                      Form(
+                          key: _formKeyUpdatePassword,
+                          child: Column(
+                            children: <Widget>[
+                              CustomTextField(
+                                "Mot de passe actuel :",
+                                "********** ( 8 caractères minimum )",
+                                TextInputType.text,
+                                passwordController,
+                                focus: passwordFocusNode,
+                                obscure: true,
+                                validator: (String value) {
+                                  if (value.isEmpty)
+                                    return "Veuillez saisir votre mot de passe actuel";
+                                  else if (value.length < 8)
+                                    return 'Veuillez saisir 8 caractères minimum';
+                                  return null;
+                                },
+                                onFieldSubmited: (String value) {
+                                  setState(() => FocusScope.of(context)
+                                      .requestFocus(passwordNewFocusNode));
+                                },
+                              ),
+                              CustomTextField(
+                                "Nouveau mot de passe :",
+                                "********** ( 8 caractères minimum )",
+                                TextInputType.text,
+                                passwordNewController,
+                                focus: passwordNewFocusNode,
+                                obscure: true,
+                                textInputAction: TextInputAction.done,
+                                validator: (String value) {
+                                  if (value.isEmpty)
+                                    return "Veuillez saisir votre nouveau mot de passe";
+                                  else if (value.length < 8)
+                                    return 'Veuillez saisir 8 caractères minimum';
+                                  else if (passwordNewController.text ==
+                                      passwordController.text)
+                                    return "Votre nouveau mot de passe doit être différent\nde l'actuel";
+                                  return null;
+                                },
+                                onFieldSubmited: (String value) async {
+                                  _updatePassword();
+                                },
+                              ),
+                            ],
+                          )),
+                      _erreurTextPassword.isEmpty
+                          ? Container()
+                          : CustomText(_erreurTextPassword, redColor, 6,
+                              padding: 5, textAlign: TextAlign.center),
+                      CustomButton(
+                        "ENREGISTER",
+                        mainColor,
+                        () async => _updatePassword(),
+                        margin: const EdgeInsets.only(
+                          top: 25.0,
+                        ),
                       ),
-                      CustomTextField("Nouveau mot de passe :", "********** ( 8 caractères minimum )", TextInputType.text, passwordNewController,
-                        focus: passwordNewFocusNode,
-                        obscure: true,
-                        textInputAction: TextInputAction.done,
-                        validator: (String value) {
-                          if (value.isEmpty) return "Veuillez saisir votre nouveau mot de passe";
-                          else if(value.length<8) return 'Veuillez saisir 8 caractères minimum';
-                          else if(passwordNewController.text == passwordController.text) return "Votre nouveau mot de passe doit être différent\nde l'actuel";
-                        },
-                        onFieldSubmited: (String value) async {
-                          _updatePassword();
-                        },
-                      ),
-                    ],)
+                    ],
                   ),
-                  _erreurTextPassword.isEmpty?Container():CustomText(_erreurTextPassword, redColor, 6, padding: 5, textAlign: TextAlign.center),
-                  CustomButton("ENREGISTER", mainColor, 
-                    ()async=>_updatePassword(),
-                    margin: const EdgeInsets.only(top: 25.0,),
-                  ),
-                ],
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 35, horizontal: 25),
                 ),
-                margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
-                padding: const EdgeInsets.symmetric(vertical: 35, horizontal: 25),
               ),
-          ),
-        ),
-      ],
-      pageName: "MODIFIER MES INFORMATIONS",
-      isConnected: true,
-      horizontalPadding: 0,
-      bottomPadding: 0,
-      haveBackground: false,
-      scaffoldState: _scaffoldState,
-    ));
+            ),
+          ],
+          pageName: "MODIFIER MES INFORMATIONS",
+          isConnected: true,
+          horizontalPadding: 0,
+          bottomPadding: 0,
+          haveBackground: false,
+          scaffoldState: _scaffoldState,
+        ));
+  }
+
+  bool _haveNewValues(){
+    return !(lastnameController.text == user.lastname &&
+        firstnameController.text == user.firstname &&
+        phoneNumberController.text == user.phoneNumber &&
+        adressController.text == user.fullAdress &&
+        selectedCity == user.city);
   }
 
   _updateInfos() async {
     print("update Infos");
     FocusScope.of(context).requestFocus(FocusNode());
-    setState(()=>_erreurTextInfos = "");
+    setState(() => _erreurTextInfos = "");
     if (!_formKeyUpdateInfos.currentState.validate()) return;
-    if (lastnameController.text==user.lastname && firstnameController.text==user.firstname && phoneNumberController.text==user.phoneNumber && 
-    adressController.text==user.fullAdress && selectedCity==user.city)
-      setState(() => _erreurTextInfos = "Vous n'avez fait aucune modification");
-    else{
-      setState(() => _isLoading = true);
-      print("lastname: ${lastnameController.text} | firstname: ${firstnameController.text} | "
+    if(!_haveNewValues()) return;
+    setState(() => _isLoading = true);
+    print(
+        "lastname: ${lastnameController.text} | firstname: ${firstnameController.text} | "
         "mail: $email | phoneNumber: ${phoneNumberController.text} | adress: ${adressController.text} "
         "| country: $selectedCountry | city: $selectedCity ");
-      RequestType reponse = await updateUserDetails(firstnameController.text, lastnameController.text, phoneNumberController.text, adressController.text, selectedCity);
-      if(reponse.getisSuccess){
-        setState((){
-          _isLoading = false;
-          showNotification("Changements enregistrés", _scaffoldState.currentState);
-        });
-      }
-      else{
-        setState((){
-          _isLoading = false;
-          showNotification(reponse.geterrorMessage, _scaffoldState.currentState);
-        });
-      }
+    RequestType reponse = await updateUserDetails(
+        firstnameController.text,
+        lastnameController.text,
+        phoneNumberController.text,
+        adressController.text,
+        selectedCity);
+    if (reponse.getisSuccess) {
+        user.lastname = lastnameController.text;
+        user.firstname = firstnameController.text;
+        user.phoneNumber = phoneNumberController.text;
+        user.fullAdress = adressController.text;
+        user.city = selectedCity;
+      setState(() {
+        _isLoading = false;
+        showNotification(
+            "Changements enregistrés", _scaffoldState.currentState);
+      });
+    } else {
+      setState(() {
+        _isLoading = false;
+        showNotification(
+            reponse.geterrorMessage, _scaffoldState.currentState);
+      });
     }
   }
 
   _updatePassword() async {
     print("_saveInfos");
     FocusScope.of(context).requestFocus(FocusNode());
-    setState(()=>_erreurTextPassword = "");
+    setState(() => _erreurTextPassword = "");
     if (!_formKeyUpdatePassword.currentState.validate()) return;
     setState(() => _isLoading = true);
-    print("actuel password: ${passwordController.text} | nouveau password: ${passwordNewController.text}");
-    RequestType reponse = await modifyPassword(passwordController.text, passwordNewController.text);
-    if(reponse.getisSuccess){
-      setState((){
+    print(
+        "actuel password: ${passwordController.text} | nouveau password: ${passwordNewController.text}");
+    RequestType reponse = await modifyPassword(
+        passwordController.text, passwordNewController.text);
+    if (reponse.getisSuccess) {
+      setState(() {
         passwordController.text = "";
         passwordNewController.text = "";
         _isLoading = false;
-        showNotification("Mot de passe changé avec succès", _scaffoldState.currentState);
+        showNotification(
+            "Mot de passe changé avec succès", _scaffoldState.currentState);
       });
-    }
-    else{
-      setState((){
+    } else {
+      setState(() {
         _isLoading = false;
         showNotification(reponse.geterrorMessage, _scaffoldState.currentState);
       });
     }
   }
 }
-
-
 
 class ProfilPicture extends StatefulWidget {
   User user;
@@ -294,111 +376,142 @@ class _ProfilPictureState extends State<ProfilPicture> {
               alignment: Alignment.center,
               children: <Widget>[
                 GestureDetector(
-                  child: CachedNetworkImage(
-                    imageUrl: this.user.profilePicture!=null?this.user.profilePicture:"https://back-end.diamiba.com/storage/default.png",
-                    imageBuilder: (context, imageProvider){
-                      this.image = (this._image==null)?Image(image: imageProvider, fit: BoxFit.contain):
-                      Image.file(this._image, fit: BoxFit.contain);
-                      return ClipRRect(child: (this._image==null)?Image(image: imageProvider):Image.file(this._image), borderRadius: BorderRadius.all(Radius.circular(20)),);
-                    },
-                    placeholder: (context, url) => Container(
-                      height: 150,
-                      width: 150,
-                      padding: EdgeInsets.all(60),
-                      child: CircularProgressIndicator(
-                        backgroundColor: mainLightColor,
-                      ),
-                    ),
-                    errorWidget: (context, url, error){
-                      this.image = (this._image==null)? Image.asset("images/profil_picture.png", fit: BoxFit.contain):
-                      Image.file(this._image, fit: BoxFit.contain);
-                      print(error);
-                      return ClipRRect(child: (this._image==null) ? Image.asset("images/profil_picture.png", width: 150,) : Image.file(this._image, width: 150,), borderRadius: BorderRadius.all(Radius.circular(20)),);
-                    } 
-                  ),
-                  onTap: (){
-                    Navigator.push(context,
-                      MaterialPageRoute(builder: (context)=> ShowPhoto(image: this.image, heroTag: this.user.id.toString(),))
-                    );
-                  }
-                ),
+                    child: CachedNetworkImage(
+                        imageUrl: this.user.profilePicture != null
+                            ? this.user.profilePicture
+                            : "https://back-end.diamiba.com/storage/default.png",
+                        imageBuilder: (context, imageProvider) {
+                          this.image = (this._image == null)
+                              ? Image(image: imageProvider, fit: BoxFit.contain)
+                              : Image.file(this._image, fit: BoxFit.contain);
+                          return ClipRRect(
+                            child: (this._image == null)
+                                ? Image(image: imageProvider)
+                                : Image.file(this._image),
+                            borderRadius: BorderRadius.all(Radius.circular(20)),
+                          );
+                        },
+                        placeholder: (context, url) => Container(
+                              height: 150,
+                              width: 150,
+                              padding: EdgeInsets.all(60),
+                              child: CircularProgressIndicator(
+                                backgroundColor: mainLightColor,
+                              ),
+                            ),
+                        errorWidget: (context, url, error) {
+                          this.image = (this._image == null)
+                              ? Image.asset("images/profil_picture.png",
+                                  fit: BoxFit.contain)
+                              : Image.file(this._image, fit: BoxFit.contain);
+                          print(error);
+                          return ClipRRect(
+                            child: (this._image == null)
+                                ? Image.asset(
+                                    "images/profil_picture.png",
+                                    width: 150,
+                                  )
+                                : Image.file(
+                                    this._image,
+                                    width: 150,
+                                  ),
+                            borderRadius: BorderRadius.all(Radius.circular(20)),
+                          );
+                        }),
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ShowPhoto(
+                                    image: this.image,
+                                    heroTag: this.user.id.toString(),
+                                  )));
+                    }),
                 Align(
                   alignment: Alignment.center,
                   child: Visibility(
-                    child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(mainColor)), 
+                    child: CircularProgressIndicator(
+                        valueColor:
+                            new AlwaysStoppedAnimation<Color>(mainColor)),
                     visible: profilePicturechanging,
                   ),
                 )
               ],
             ),
           ),
-          CustomButton("CHANGER", mainColor, ()async=>_changePhoto(),
-            margin: const EdgeInsets.only(top: 25.0,),
+          CustomButton(
+            "CHANGER",
+            mainColor,
+            () async => _changePhoto(),
+            margin: const EdgeInsets.only(
+              top: 25.0,
+            ),
           ),
         ],
       ),
     );
   }
 
-
   _changePhoto() async {
     FocusScope.of(context).requestFocus(FocusNode());
     showDialog<int>(
-      context: context,
-      builder: (BuildContext context)=>SimpleDialog(
-        children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              IconButton(
-                icon: Icon(Icons.add_a_photo , color: whiteColor),
-                onPressed: ()=>Navigator.pop(context, 0),
-                iconSize: 60,
-                splashColor: mainHighlightColor,
-              ),
-              SizedBox(width: 20,),
-              IconButton(
-                icon: Icon(Icons.add_photo_alternate , color: whiteColor),
-                onPressed: ()=>Navigator.pop(context, 1),
-                iconSize: 60,
-                splashColor: mainHighlightColor,
-              ),
-            ],
-          )
-        ],
-        backgroundColor: whiteColor.withOpacity(0),
-        elevation: 0,
-      )
-    ).then(
-      (mode) async {
-        if(mode!=null){
-          var image;
-          switch (mode) {
-            case 0: image = await ImagePicker.pickImage(source: ImageSource.camera);
-              break;
-            case 1: image = await ImagePicker.pickImage(source: ImageSource.gallery);
-              break;
-          }
-          if(image != null){
-            setState(() => profilePicturechanging = true);
-            RequestType reponse = await changeUserPicture(image);
-              if(reponse.getisSuccess){
-                setState((){
-                  _image = image;
-                  profilePicturechanging = false;
-                });
-                this.user.profilePicture = "${Routes.url}${reponse.getdata}";
-                showNotification("Photo de profil changée avec succès", this.widget._scaffoldState.currentState);
-              }
-              else{
-                setState((){
-                  profilePicturechanging = false;
-                });
-                showNotification(reponse.geterrorMessage, this.widget._scaffoldState.currentState);
-              }
+        context: context,
+        builder: (BuildContext context) => SimpleDialog(
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    IconButton(
+                      icon: Icon(Icons.add_a_photo, color: whiteColor),
+                      onPressed: () => Navigator.pop(context, 0),
+                      iconSize: 60,
+                      splashColor: mainHighlightColor,
+                    ),
+                    SizedBox(
+                      width: 20,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.add_photo_alternate, color: whiteColor),
+                      onPressed: () => Navigator.pop(context, 1),
+                      iconSize: 60,
+                      splashColor: mainHighlightColor,
+                    ),
+                  ],
+                )
+              ],
+              backgroundColor: whiteColor.withOpacity(0),
+              elevation: 0,
+            )).then((mode) async {
+      if (mode != null) {
+        var image;
+        switch (mode) {
+          case 0:
+            image = await ImagePicker.pickImage(source: ImageSource.camera);
+            break;
+          case 1:
+            image = await ImagePicker.pickImage(source: ImageSource.gallery);
+            break;
+        }
+        if (image != null) {
+          setState(() => profilePicturechanging = true);
+          RequestType reponse = await changeUserPicture(image);
+          if (reponse.getisSuccess) {
+            setState(() {
+              _image = image;
+              profilePicturechanging = false;
+            });
+            this.user.profilePicture = "${Routes.url}${reponse.getdata}";
+            showNotification("Photo de profil changée avec succès",
+                this.widget._scaffoldState.currentState);
+          } else {
+            setState(() {
+              profilePicturechanging = false;
+            });
+            showNotification(reponse.geterrorMessage,
+                this.widget._scaffoldState.currentState);
           }
         }
       }
-    );
+    });
   }
 }

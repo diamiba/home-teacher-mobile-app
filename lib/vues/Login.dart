@@ -60,7 +60,6 @@ class _LoginPageState extends State<LoginPage> {
     //SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values); //Afficher la status bar
     return CustomModalProgressHUD(_isLoading,
       CustomBody(
-        Container(),
         children: [
           SliverToBoxAdapter(
             child: CustomCard(
@@ -90,6 +89,7 @@ class _LoginPageState extends State<LoginPage> {
                               if (!regex.hasMatch(value))
                                 return 'Veuillez saisir une adresse mail valide';
                             }
+                            return null;
                           },
                           onFieldSubmited: (String value) {
                               setState(()=>FocusScope.of(context).requestFocus(passwordFocusNode));
@@ -101,6 +101,7 @@ class _LoginPageState extends State<LoginPage> {
                           validator: (String value) {
                             if (value.isEmpty) return "Veuillez saisir votre mot de passe";
                             else if(value.length<8) return 'Veuillez saisir 8 caractères minimum';
+                            return null;
                           },
                           onFieldSubmited: (pass) async {
                               _login();

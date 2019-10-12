@@ -49,7 +49,6 @@ class _RegisterPageState extends State<RegisterPage> {
     indicatif = AllCountries.getCountryPhonePrefix(selectedCountry);
     return CustomModalProgressHUD(_isLoading,
      CustomBody(
-       Container(),
      children : <Widget> [
        SliverToBoxAdapter(
         child: CustomCard(
@@ -90,6 +89,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         textCapitalization: TextCapitalization.characters,
                         validator: (String value) {
                           if (value.isEmpty) return "Veuillez saisir votre nom";
+                          return null;
                         },
                         onFieldSubmited: (String value) {
                           setState(()=>FocusScope.of(context).requestFocus(firstnameFocusNode));
@@ -100,6 +100,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         focus: firstnameFocusNode,
                         validator: (String value) {
                           if (value.isEmpty) return "Veuillez saisir votre prénom";
+                          return null;
                         },
                         onFieldSubmited: (String value) {
                           setState(()=>FocusScope.of(context).requestFocus(emailFocusNode));
@@ -116,6 +117,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             if (!regex.hasMatch(value))
                               return 'Veuillez saisir une adresse mail valide';
                           }
+                          return null;
                         },
                         onFieldSubmited: (String value) {
                           setState(()=>FocusScope.of(context).requestFocus(phoneNumberFocusNode));
@@ -129,6 +131,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           if (value.isEmpty) return "Veuillez saisir votre numéro de téléphone";
                           int t = int.tryParse(value);
                           if (t==null) return "votre numéro doit contenir uniquement des chiffres";
+                          return null;
                         },
                         onFieldSubmited: (String value) {
                           setState(()=>FocusScope.of(context).requestFocus(adressFocusNode));
@@ -138,6 +141,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         focus: adressFocusNode,
                         validator: (String value) {
                           if (value.isEmpty) return "Veuillez saisir votre adresse";
+                          return null;
                         },
                         onFieldSubmited: (String value) {
                           setState(()=>FocusScope.of(context).requestFocus(passwordFocusNode));
@@ -149,6 +153,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         validator: (String value) {
                           if (value.isEmpty) return "Veuillez saisir votre mot de passe";
                           else if(value.length<8) return 'Veuillez saisir 8 caractères minimum';
+                          return null;
                         },
                         onFieldSubmited: (String value) {
                           setState(()=>FocusScope.of(context).requestFocus(passwordConfirmationFocusNode));
@@ -161,6 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         validator: (String value) {
                           if (value.isEmpty) return "Veuillez saisir à nouveau votre mot de passe";
                           if (passwordController.text != passwordConfirmationController.text) return "Les mots de passe ne correspondent pas";
+                          return null;
                         },
                         onFieldSubmited: (String value) async {
                             _register();

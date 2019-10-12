@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:async/async.dart';
+//import 'package:async/async.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -80,7 +80,7 @@ class RequestType{
   factory RequestType.success(var data) => RequestType(isSuccess: true, data: data);
 
 
-  static Future<RequestType> makeRequest({Function requete, String nom, int duration = 15}) async{
+  static Future<RequestType> makeRequest({Function requete, String nom, int duration = 30}) async{
     try {
       var body;
       final response = await requete().timeout(Duration(seconds: duration));

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:home_teacher/Utile.dart';
-import 'package:home_teacher/Modele.dart';
-import 'package:home_teacher/Services.dart';
+//import 'package:home_teacher/Modele.dart';
+//import 'package:home_teacher/Services.dart';
 import 'package:home_teacher/vues/CustomWidgets.dart';
 
 
@@ -16,7 +16,7 @@ class _PasswordChangePageState extends State<PasswordChangePage> {
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays ([]); // cacher la status bar
     //SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values); //Afficher la status bar
-    return CustomBody(Container(),
+    return CustomBody(
       children : <Widget>[
         SliverToBoxAdapter(
           child: CustomCard(

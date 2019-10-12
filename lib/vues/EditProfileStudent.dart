@@ -35,7 +35,6 @@ class _EditProfileStudentPageState extends State<EditProfileStudentPage> {
     SystemChrome.setEnabledSystemUIOverlays ([]); // cacher la status bar
     return CustomModalProgressHUD(_isLoading,
     CustomBody(
-      Container(),
       children: <Widget>[
         SliverToBoxAdapter(
           child: Center(
@@ -56,9 +55,11 @@ class _EditProfileStudentPageState extends State<EditProfileStudentPage> {
                         textInputAction: TextInputAction.done,
                         validator: (String value) {
                           if (value.isEmpty) return "Veuillez saisir votre école";
+                            return null;
                         },
                         onFieldSubmited: (pass) async {
-                          _update();
+                          if(_haveNewValues())
+                              _update();
                         },
                         ),      
                       ],
@@ -66,7 +67,9 @@ class _EditProfileStudentPageState extends State<EditProfileStudentPage> {
                   ),
                   _erreurText.isEmpty?Container():CustomText(_erreurText, redColor, 6, padding: 5, textAlign: TextAlign.center),
                   CustomButton("ENREGISTER", mainColor, 
-                    ()async=>_update(),
+                    _haveNewValues()
+                      ? () async=> _update()
+                      : null,
                     margin: const EdgeInsets.only(top: 25.0,),
                   ),
                 ],
@@ -87,16 +90,18 @@ class _EditProfileStudentPageState extends State<EditProfileStudentPage> {
   }
 
 
+  bool _haveNewValues(){
+    return !(quarter == student.quarter && level == student.level && school.text == student.school);
+  }
+
+
   _update() async {
     print("update student infos");
     FocusScope.of(context).requestFocus(FocusNode());
     setState(()=>_erreurText = "");
     if (!_formKeyUpdate.currentState.validate()) return;
 
-    if(quarter == student.quarter && level == student.level && school.text == student.school)
-      setState((){
-        _erreurText = "Vous n'avez fait aucune modification";
-      });
+    if(!_haveNewValues()) return;
     else{
       setState(() =>  _isLoading = true);
       Map<String,dynamic> body = {
