@@ -185,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
     switch (result.status) {
       case FacebookLoginStatus.loggedIn:
         final FacebookAccessToken accessToken = result.accessToken;
-        print('''
+        /*print('''
          Logged in!
          Token: ${accessToken.token}
          User id: ${accessToken.userId}
@@ -201,16 +201,26 @@ class _LoginPageState extends State<LoginPage> {
          Permissions: ${accessToken.permissions}
          Declined permissions: ${accessToken.declinedPermissions}
          ''', 
-         _scaffoldState.currentState);
-        
-        //_showLoggedInUI();
+         _scaffoldState.currentState);*/
+
+        var reponse = await serv.loginFB(accessToken.token);
+        if(reponse.getisSuccess && SearchOptions.isLoaded){
+          currentUser = reponse.data;
+          setState(() => _isLoading = false);
+          Navigator.of(context).pushReplacementNamed(Vues.home);
+        }
+        else{
+          setState(()=>_isLoading = false);
+          showNotification(reponse.geterrorMessage, this._scaffoldState.currentState);
+        }
         break;
       case FacebookLoginStatus.cancelledByUser:
         showNotification("Identification annulée", _scaffoldState.currentState);
         break;
       case FacebookLoginStatus.error:
         print(result.errorMessage);
-        showNotification("Echec de l'identification par Facebook\n${result.errorMessage}", _scaffoldState.currentState);
+        //showNotification("Echec de l'identification par Facebook\n${result.errorMessage}", _scaffoldState.currentState);
+        showNotification("Echec de l'identification par Facebook", _scaffoldState.currentState);
         break;
     }
   }

@@ -212,6 +212,38 @@ Future<RequestType> login(String email, String password) async{
   }
 }
 
+Future<RequestType> loginFB(String fbToken) async{
+  var client = new http.Client();
+  try {
+    final RequestType reponse = await RequestType.makeRequest(
+      requete: () async {
+        return await client.post(
+          Routes.loginFB,
+          body: {'token': fbToken}
+        );
+      },
+      nom: "loginFB",
+      duration: 30,
+    );
+    if(reponse.getisSuccess){
+      String token = reponse.getdata["data"]["token"];
+      currentToken = token;
+      saveToken(token);
+      var currentUserReponse = await getCurrentUser(token, client: client);
+      var options = await searchOptions(token, client: client);
+      SearchOptions(options);
+      client.close();
+      return currentUserReponse;
+    }
+    client.close();
+    return reponse;
+  } catch (e) {
+    client.close();
+    print(e);
+    return RequestType.echecWithCustomMessage("Désolé, une erreur s'est produite lors de l'identification !\nVeuillez réessayer");
+  }
+}
+
 Future<RequestType> getCurrentUser(String token, {var client}) async{
   final RequestType reponse = await RequestType.makeRequest(
     requete: () async {
@@ -802,6 +834,28 @@ Future<RequestType> register({bool isStudent, String firstName, String lastName,
     return RequestType.echec(ErreurType.undefined);
   }
 }
+
+
+Future<RequestType> registerFB(String fbToken) async{
+  try {
+    final RequestType reponse = await RequestType.makeRequest(
+      requete: () async {
+        return await http.post(
+          Routes.registerFB,
+          body: {'token': fbToken}
+        );
+      },
+      nom: "registerFB",
+    );
+    if(reponse.getisSuccess)
+      reponse.setdata = reponse.getdata["Ok"];
+    return reponse;
+  } catch (e) {
+    print(e);
+    return RequestType.echec(ErreurType.undefined);
+  }
+}
+
 
 
 Future<bool> checkConnection() async {

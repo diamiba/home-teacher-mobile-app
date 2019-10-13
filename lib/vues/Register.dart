@@ -269,7 +269,6 @@ class _RegisterPageState extends State<RegisterPage> {
   _registerFacebook() async {
     bool haveInternet = await serv.checkConnection();
     if(!haveInternet){
-      setState(() => _isLoading = false);
       showNotification("Veuillez vérifier votre connection internet", this._scaffoldState.currentState);
       return;
     }
@@ -278,26 +277,37 @@ class _RegisterPageState extends State<RegisterPage> {
     switch (result.status) {
       case FacebookLoginStatus.loggedIn:
         final String token = result.accessToken.token;
-        final graphResponse = await http.get(
+        print(token);
+        showNotification(token, _scaffoldState.currentState);
+        /*final graphResponse = await http.get(
                     'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
         final profile = json.decode(graphResponse.body);
         print(profile.toString());
-        showNotification(profile.toString(), _scaffoldState.currentState);
+        showNotification(profile.toString(), _scaffoldState.currentState);*/
+        /*if(token!=null){
+          var reponse = await serv.registerFB(token);
+          if(reponse.getisSuccess)
+            setState((){
+              _isLoading = false;
+              _isDone = true;
+            });
+          else{
+            setState(() => _isLoading = false);
+            showNotification(reponse.geterrorMessage, this._scaffoldState.currentState);
+          }
+        }
+        else
+            showNotification("Erreur lors de l'inscription, veuillez réessayer !", this._scaffoldState.currentState);*/
         break;
       case FacebookLoginStatus.cancelledByUser:
         print("Inscription annulée");
         showNotification("Inscription annulée", _scaffoldState.currentState);
-        return;
         break;
       case FacebookLoginStatus.error:
         print(result.errorMessage);
         showNotification("Echec de l'inscription par Facebook", _scaffoldState.currentState);
-        return;
         break;
     }
-    setState(() {
-      _isDone = true; 
-    });
   }
 
 
