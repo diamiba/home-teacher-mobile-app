@@ -293,9 +293,12 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       }
+      else
+        suggestions = SliverToBoxAdapter(child: Container());
+      
       setState(() {
         resultWidget = result;
-        if(suggestions != null) suggestionsWidget = suggestions;
+        suggestionsWidget = suggestions;
         isSearching = false; 
       });
     }
@@ -308,7 +311,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   seeSuggestions() {
-    print("object");
     //setState(() => suggestionsShown = true);
     suggestionsShown = true;
     resultCard(refresh: true);
